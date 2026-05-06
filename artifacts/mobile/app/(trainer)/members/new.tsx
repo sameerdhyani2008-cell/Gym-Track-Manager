@@ -2,7 +2,6 @@ import * as ImagePicker from 'expo-image-picker';
 import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import {
-  Alert,
   Image,
   KeyboardAvoidingView,
   Platform,
@@ -25,6 +24,7 @@ export default function TrainerAddMemberScreen() {
   const router = useRouter();
   const { gym, session, refreshGym } = useAuth();
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
   const [photo, setPhoto] = useState('');
   const [form, setForm] = useState({
     name: '',
@@ -37,7 +37,11 @@ export default function TrainerAddMemberScreen() {
     paymentMethod: 'cash' as PayMethod,
   });
 
-  const update = (key: keyof typeof form) => (val: string) => setForm(f => ({ ...f, [key]: val }));
+  const update = (key: keyof typeof form) => (val: string) => {
+    setError('');
+    setForm(f => ({ ...f, [key]: val }));
+  };
+
   const selectedPlan = gym?.plans.find(p => p.id === form.planId);
   const endDate = (() => {
     if (!selectedPlan || !form.startDate) return '';
@@ -48,7 +52,7 @@ export default function TrainerAddMemberScreen() {
 
   const pickPhoto = async () => {
     const perm = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (!perm.granted) { Alert.alert('Permission needed'); return; }
+    if (!perm.granted) return;
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
       allowsEditing: true, aspect: [1, 1], quality: 0.5, base64: true,
@@ -59,10 +63,10 @@ export default function TrainerAddMemberScreen() {
   };
 
   const handleAdd = async () => {
-    if (!form.name || !form.phone || !form.planId) {
-      Alert.alert('Missing fields', 'Name, phone, and plan are required.');
-      return;
-    }
+    setError('');
+    if (!form.name.trim()) { setError('Name is required.'); return; }
+    if (!form.phone.trim()) { setError('Phone number is required.'); return; }
+    if (!form.planId) { setError('Please select a membership plan.'); return; }
     if (!session?.gymId) return;
     setLoading(true);
     try {
@@ -78,6 +82,8 @@ export default function TrainerAddMemberScreen() {
       });
       await refreshGym();
       router.back();
+    } catch {
+      setError('Failed to add member. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -96,18 +102,24 @@ export default function TrainerAddMemberScreen() {
         <StyledInput label="Medical Info" value={form.medicalInfo} onChangeText={update('medicalInfo')} placeholder="Any conditions" multiline numberOfLines={3} />
 
         <Text style={[styles.label, { color: colors.mutedForeground }]}>Select Plan *</Text>
-        <View style={styles.planGrid}>
-          {(gym?.plans ?? []).map(plan => (
-            <TouchableOpacity
-              key={plan.id}
-              onPress={() => update('planId')(plan.id)}
-              style={[styles.planCard, { backgroundColor: form.planId === plan.id ? colors.primary : colors.card, borderColor: form.planId === plan.id ? colors.primary : colors.border, borderRadius: colors.radius }]}
-            >
-              <Text style={[styles.planName, { color: form.planId === plan.id ? '#fff' : colors.foreground }]}>{plan.name}</Text>
-              <Text style={[styles.planPrice, { color: form.planId === plan.id ? '#fff' : colors.primary }]}>₹{plan.price}</Text>
-            </TouchableOpacity>
-          ))}
-        </View>
+        {(gym?.plans ?? []).length === 0 ? (
+          <View style={[styles.noPlans, { backgroundColor: colors.card, borderColor: colors.border, borderRadius: colors.radius }]}>
+            <Text style={{ color: colors.mutedForeground, fontFamily: 'Inter_400Regular', fontSize: 14 }}>No plans available.</Text>
+          </View>
+        ) : (
+          <View style={styles.planGrid}>
+            {(gym?.plans ?? []).map(plan => (
+              <TouchableOpacity
+                key={plan.id}
+                onPress={() => { setError(''); setForm(f => ({ ...f, planId: plan.id })); }}
+                style={[styles.planCard, { backgroundColor: form.planId === plan.id ? colors.primary : colors.card, borderColor: form.planId === plan.id ? colors.primary : colors.border, borderRadius: colors.radius }]}
+              >
+                <Text style={[styles.planName, { color: form.planId === plan.id ? '#fff' : colors.foreground }]}>{plan.name}</Text>
+                <Text style={[styles.planPrice, { color: form.planId === plan.id ? '#fff' : colors.primary }]}>₹{plan.price}</Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+        )}
 
         <StyledInput label="Start Date" value={form.startDate} onChangeText={update('startDate')} placeholder="YYYY-MM-DD" />
         {endDate ? <Text style={[{ color: colors.mutedForeground, fontSize: 13, fontFamily: 'Inter_500Medium' }]}>End Date: {endDate}</Text> : null}
@@ -126,6 +138,12 @@ export default function TrainerAddMemberScreen() {
           ))}
         </View>
 
+        {error ? (
+          <View style={[styles.errorBox, { backgroundColor: '#ef444422', borderColor: '#ef444444', borderRadius: colors.radius }]}>
+            <Text style={{ color: '#ef4444', fontFamily: 'Inter_500Medium', fontSize: 14 }}>{error}</Text>
+          </View>
+        ) : null}
+
         <StyledButton title="Add Member" onPress={handleAdd} loading={loading} />
       </ScrollView>
     </KeyboardAvoidingView>
@@ -138,10 +156,12 @@ const styles = StyleSheet.create({
   photo: { width: 88, height: 88 },
   photoPlaceholder: { fontSize: 11, fontFamily: 'Inter_500Medium', textAlign: 'center' },
   label: { fontSize: 13, fontFamily: 'Inter_500Medium', fontWeight: '500' as const },
+  noPlans: { padding: 14, borderWidth: 1 },
   planGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
   planCard: { padding: 12, borderWidth: 1, minWidth: 90, alignItems: 'center', gap: 4 },
   planName: { fontSize: 13, fontFamily: 'Inter_600SemiBold', fontWeight: '600' as const },
   planPrice: { fontSize: 15, fontFamily: 'Inter_700Bold', fontWeight: '700' as const },
   payRow: { flexDirection: 'row', gap: 8 },
   payBtn: { flex: 1, paddingVertical: 8, alignItems: 'center', borderWidth: 1 },
+  errorBox: { padding: 14, borderWidth: 1 },
 });

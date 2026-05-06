@@ -1,6 +1,6 @@
 import { useRouter } from 'expo-router';
 import React from 'react';
-import { Alert, ScrollView, StyleSheet, Switch, Text, View } from 'react-native';
+import { ScrollView, StyleSheet, Switch, Text, View } from 'react-native';
 import { StyledButton } from '@/components/StyledButton';
 import { useAuth } from '@/context/AuthContext';
 import { useTheme } from '@/context/ThemeContext';
@@ -9,19 +9,12 @@ import { useColors } from '@/hooks/useColors';
 export default function TrainerSettingsScreen() {
   const colors = useColors();
   const { isDark, toggleTheme } = useTheme();
-  const { gym, trainer, session, logout } = useAuth();
+  const { gym, trainer, logout } = useAuth();
   const router = useRouter();
 
-  const handleLogout = () => {
-    Alert.alert('Logout', 'Are you sure?', [
-      { text: 'Cancel', style: 'cancel' },
-      {
-        text: 'Logout', style: 'destructive', onPress: async () => {
-          await logout();
-          router.replace('/welcome');
-        },
-      },
-    ]);
+  const handleLogout = async () => {
+    await logout();
+    router.replace('/welcome');
   };
 
   return (
@@ -46,12 +39,7 @@ export default function TrainerSettingsScreen() {
 
       <View style={[styles.toggleRow, { backgroundColor: colors.card, borderColor: colors.border, borderRadius: colors.radius }]}>
         <Text style={[styles.toggleLabel, { color: colors.foreground }]}>Dark Mode</Text>
-        <Switch
-          value={isDark}
-          onValueChange={toggleTheme}
-          trackColor={{ false: colors.border, true: colors.primary }}
-          thumbColor="#fff"
-        />
+        <Switch value={isDark} onValueChange={toggleTheme} trackColor={{ false: colors.border, true: colors.primary }} thumbColor="#fff" />
       </View>
 
       <StyledButton title="Logout" onPress={handleLogout} variant="destructive" />

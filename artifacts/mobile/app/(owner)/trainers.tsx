@@ -1,7 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import React, { useState } from 'react';
 import {
-  Alert,
   FlatList,
   Modal,
   StyleSheet,
@@ -22,15 +21,18 @@ export default function TrainersScreen() {
   const { gym, session, refreshGym } = useAuth();
   const [modal, setModal] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
   const [form, setForm] = useState({ name: '', phone: '', specialization: '', password: '' });
+  const [confirmRemove, setConfirmRemove] = useState<Trainer | null>(null);
+  const [removeLoading, setRemoveLoading] = useState(false);
 
   const trainers = gym?.trainers ?? [];
 
   const handleAdd = async () => {
-    if (!form.name || !form.phone || !form.password) {
-      Alert.alert('Missing fields', 'Name, phone, and password are required.');
-      return;
-    }
+    setError('');
+    if (!form.name.trim()) { setError('Name is required.'); return; }
+    if (!form.phone.trim()) { setError('Phone is required.'); return; }
+    if (!form.password.trim()) { setError('Password is required.'); return; }
     if (!session?.gymId) return;
     setLoading(true);
     try {
@@ -43,22 +45,23 @@ export default function TrainersScreen() {
       await refreshGym();
       setModal(false);
       setForm({ name: '', phone: '', specialization: '', password: '' });
+    } catch {
+      setError('Failed to add trainer. Please try again.');
     } finally {
       setLoading(false);
     }
   };
 
-  const handleRemove = (trainer: Trainer) => {
-    Alert.alert('Remove Trainer', `Remove ${trainer.name}?`, [
-      { text: 'Cancel', style: 'cancel' },
-      {
-        text: 'Remove', style: 'destructive', onPress: async () => {
-          if (!session?.gymId) return;
-          await removeTrainer(session.gymId, trainer.id);
-          await refreshGym();
-        },
-      },
-    ]);
+  const handleRemove = async () => {
+    if (!confirmRemove || !session?.gymId) return;
+    setRemoveLoading(true);
+    try {
+      await removeTrainer(session.gymId, confirmRemove.id);
+      await refreshGym();
+      setConfirmRemove(null);
+    } finally {
+      setRemoveLoading(false);
+    }
   };
 
   return (
@@ -82,7 +85,7 @@ export default function TrainersScreen() {
                 <Text style={[styles.idText, { color: colors.primary }]}>ID: {item.id}</Text>
               </View>
             </View>
-            <TouchableOpacity onPress={() => handleRemove(item)}>
+            <TouchableOpacity onPress={() => setConfirmRemove(item)} style={{ padding: 4 }}>
               <Ionicons name="trash-outline" size={20} color={colors.destructive} />
             </TouchableOpacity>
           </View>
@@ -93,25 +96,51 @@ export default function TrainersScreen() {
       />
 
       <TouchableOpacity
-        onPress={() => setModal(true)}
+        onPress={() => { setModal(true); setError(''); }}
         style={[styles.fab, { backgroundColor: colors.navTrainers }]}
       >
         <Ionicons name="add" size={28} color="#fff" />
       </TouchableOpacity>
 
+      {/* Remove confirmation inline overlay */}
+      {confirmRemove && (
+        <View style={[styles.overlay, { backgroundColor: colors.background + 'ee' }]}>
+          <View style={[styles.confirmCard, { backgroundColor: colors.card, borderColor: '#ef444444', borderRadius: colors.radius }]}>
+            <Ionicons name="warning-outline" size={28} color="#ef4444" />
+            <Text style={[styles.confirmTitle, { color: colors.foreground }]}>Remove Trainer?</Text>
+            <Text style={[styles.confirmSub, { color: colors.mutedForeground }]}>
+              Remove {confirmRemove.name} from your gym? They will lose access.
+            </Text>
+            <View style={styles.confirmBtns}>
+              <TouchableOpacity onPress={() => setConfirmRemove(null)} style={[styles.confirmNo, { borderColor: colors.border, borderRadius: colors.radius }]}>
+                <Text style={{ color: colors.foreground, fontFamily: 'Inter_600SemiBold' }}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity onPress={handleRemove} disabled={removeLoading} style={[styles.confirmYes, { backgroundColor: '#ef4444', borderRadius: colors.radius }]}>
+                <Text style={{ color: '#fff', fontFamily: 'Inter_600SemiBold' }}>{removeLoading ? 'Removing...' : 'Remove'}</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      )}
+
       <Modal visible={modal} animationType="slide" presentationStyle="formSheet">
         <View style={[styles.modal, { backgroundColor: colors.background }]}>
           <View style={styles.modalHeader}>
             <Text style={[styles.modalTitle, { color: colors.foreground }]}>Add Trainer</Text>
-            <TouchableOpacity onPress={() => setModal(false)}>
+            <TouchableOpacity onPress={() => { setModal(false); setError(''); }}>
               <Ionicons name="close" size={24} color={colors.foreground} />
             </TouchableOpacity>
           </View>
           <View style={{ gap: 16 }}>
-            <StyledInput label="Full Name *" value={form.name} onChangeText={v => setForm(f => ({ ...f, name: v }))} placeholder="Trainer name" />
-            <StyledInput label="Phone *" value={form.phone} onChangeText={v => setForm(f => ({ ...f, phone: v }))} placeholder="Phone number" keyboardType="phone-pad" />
+            <StyledInput label="Full Name *" value={form.name} onChangeText={v => { setForm(f => ({ ...f, name: v })); setError(''); }} placeholder="Trainer name" />
+            <StyledInput label="Phone *" value={form.phone} onChangeText={v => { setForm(f => ({ ...f, phone: v })); setError(''); }} placeholder="Phone number" keyboardType="phone-pad" />
             <StyledInput label="Specialization" value={form.specialization} onChangeText={v => setForm(f => ({ ...f, specialization: v }))} placeholder="e.g. Strength, Yoga" />
-            <StyledInput label="Password *" value={form.password} onChangeText={v => setForm(f => ({ ...f, password: v }))} placeholder="Set trainer login password" secureTextEntry />
+            <StyledInput label="Password *" value={form.password} onChangeText={v => { setForm(f => ({ ...f, password: v })); setError(''); }} placeholder="Set trainer login password" secureTextEntry />
+            {error ? (
+              <View style={[{ padding: 12, borderWidth: 1, borderRadius: colors.radius, backgroundColor: '#ef444422', borderColor: '#ef444444' }]}>
+                <Text style={{ color: '#ef4444', fontFamily: 'Inter_500Medium', fontSize: 14 }}>{error}</Text>
+              </View>
+            ) : null}
             <StyledButton title="Add Trainer" onPress={handleAdd} loading={loading} />
           </View>
         </View>
@@ -128,6 +157,13 @@ const styles = StyleSheet.create({
   idBadge: { marginTop: 4, paddingHorizontal: 8, paddingVertical: 2, alignSelf: 'flex-start' },
   idText: { fontSize: 11, fontFamily: 'Inter_600SemiBold', fontWeight: '600' as const },
   fab: { position: 'absolute', right: 20, bottom: 20, width: 56, height: 56, borderRadius: 28, alignItems: 'center', justifyContent: 'center' },
+  overlay: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, alignItems: 'center', justifyContent: 'center', padding: 24 },
+  confirmCard: { width: '100%', padding: 24, borderWidth: 1, gap: 12, alignItems: 'center' },
+  confirmTitle: { fontSize: 18, fontFamily: 'Inter_700Bold', fontWeight: '700' as const },
+  confirmSub: { fontSize: 14, fontFamily: 'Inter_400Regular', textAlign: 'center', lineHeight: 20 },
+  confirmBtns: { flexDirection: 'row', gap: 12, width: '100%' },
+  confirmNo: { flex: 1, paddingVertical: 12, alignItems: 'center', borderWidth: 1 },
+  confirmYes: { flex: 1, paddingVertical: 12, alignItems: 'center' },
   modal: { flex: 1, padding: 24, gap: 20 },
   modalHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   modalTitle: { fontSize: 20, fontFamily: 'Inter_700Bold', fontWeight: '700' as const },

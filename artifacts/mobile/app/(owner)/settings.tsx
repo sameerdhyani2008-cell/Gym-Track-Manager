@@ -1,7 +1,6 @@
 import { useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import {
-  Alert,
   ScrollView,
   StyleSheet,
   Switch,
@@ -22,6 +21,8 @@ export default function OwnerSettingsScreen() {
   const { isDark, toggleTheme } = useTheme();
   const router = useRouter();
   const [loading, setLoading] = useState(false);
+  const [saveMsg, setSaveMsg] = useState('');
+  const [saveErr, setSaveErr] = useState('');
   const [form, setForm] = useState({
     name: gym?.name ?? '',
     ownerName: gym?.ownerName ?? '',
@@ -44,38 +45,32 @@ export default function OwnerSettingsScreen() {
     }
   }, [gym]);
 
-  const update = (key: keyof typeof form) => (val: string) =>
+  const update = (key: keyof typeof form) => (val: string) => {
+    setSaveMsg(''); setSaveErr('');
     setForm(f => ({ ...f, [key]: val }));
+  };
 
   const handleSave = async () => {
     if (!session?.gymId) return;
-    setLoading(true);
+    setLoading(true); setSaveMsg(''); setSaveErr('');
     try {
       await updateGymSettings(session.gymId, form);
       await refreshGym();
-      Alert.alert('Saved', 'Settings updated successfully.');
+      setSaveMsg('Settings saved successfully.');
+    } catch {
+      setSaveErr('Failed to save. Please try again.');
     } finally {
       setLoading(false);
     }
   };
 
-  const handleLogout = () => {
-    Alert.alert('Logout', 'Are you sure you want to logout?', [
-      { text: 'Cancel', style: 'cancel' },
-      {
-        text: 'Logout', style: 'destructive', onPress: async () => {
-          await logout();
-          router.replace('/welcome');
-        },
-      },
-    ]);
+  const handleLogout = async () => {
+    await logout();
+    router.replace('/welcome');
   };
 
   return (
-    <ScrollView
-      style={{ flex: 1, backgroundColor: colors.background }}
-      contentContainerStyle={styles.container}
-    >
+    <ScrollView style={{ flex: 1, backgroundColor: colors.background }} contentContainerStyle={styles.container}>
       <View style={[styles.infoBox, { backgroundColor: colors.card, borderColor: colors.border, borderRadius: colors.radius }]}>
         <Text style={[styles.label, { color: colors.mutedForeground }]}>Gym ID</Text>
         <Text style={[styles.gymId, { color: colors.primary }]}>{gym?.id}</Text>
@@ -95,16 +90,22 @@ export default function OwnerSettingsScreen() {
         <StyledInput label="State" value={form.state} onChangeText={update('state')} />
       </View>
 
+      {saveMsg ? (
+        <View style={[styles.msgBox, { backgroundColor: '#22c55e22', borderColor: '#22c55e44', borderRadius: colors.radius }]}>
+          <Text style={{ color: '#22c55e', fontFamily: 'Inter_500Medium', fontSize: 14 }}>{saveMsg}</Text>
+        </View>
+      ) : null}
+      {saveErr ? (
+        <View style={[styles.msgBox, { backgroundColor: '#ef444422', borderColor: '#ef444444', borderRadius: colors.radius }]}>
+          <Text style={{ color: '#ef4444', fontFamily: 'Inter_500Medium', fontSize: 14 }}>{saveErr}</Text>
+        </View>
+      ) : null}
+
       <StyledButton title="Save Changes" onPress={handleSave} loading={loading} />
 
       <View style={[styles.toggleRow, { backgroundColor: colors.card, borderColor: colors.border, borderRadius: colors.radius }]}>
         <Text style={[styles.toggleLabel, { color: colors.foreground }]}>Dark Mode</Text>
-        <Switch
-          value={isDark}
-          onValueChange={toggleTheme}
-          trackColor={{ false: colors.border, true: colors.primary }}
-          thumbColor="#fff"
-        />
+        <Switch value={isDark} onValueChange={toggleTheme} trackColor={{ false: colors.border, true: colors.primary }} thumbColor="#fff" />
       </View>
 
       <StyledButton title="Logout" onPress={handleLogout} variant="destructive" />
@@ -120,6 +121,7 @@ const styles = StyleSheet.create({
   planBadge: { fontSize: 14, fontFamily: 'Inter_700Bold', fontWeight: '700' as const },
   section: { gap: 16 },
   sectionTitle: { fontSize: 16, fontFamily: 'Inter_700Bold', fontWeight: '700' as const },
+  msgBox: { padding: 14, borderWidth: 1 },
   toggleRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: 16, borderWidth: 1 },
   toggleLabel: { fontSize: 15, fontFamily: 'Inter_500Medium', fontWeight: '500' as const },
 });

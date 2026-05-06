@@ -2,9 +2,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useCallback, useMemo, useState } from 'react';
 import {
-  Alert,
   Image,
-  Platform,
   RefreshControl,
   ScrollView,
   StyleSheet,
@@ -24,6 +22,8 @@ export default function MemberDetailScreen() {
   const router = useRouter();
   const { gym, session, refreshGym } = useAuth();
   const [refreshing, setRefreshing] = useState(false);
+  const [confirmAction, setConfirmAction] = useState<'extend' | 'cancel' | null>(null);
+  const [actionLoading, setActionLoading] = useState(false);
 
   const member = useMemo(() => gym?.members.find(m => m.id === id), [gym, id]);
   const plan = useMemo(() => gym?.plans.find(p => p.id === member?.planId), [gym, member]);
@@ -47,36 +47,27 @@ export default function MemberDetailScreen() {
   const daysLeft = Math.ceil((new Date(member.endDate).getTime() - Date.now()) / 86400000);
   const statusColor = member.status === 'active' ? '#22c55e' : member.status === 'expired' ? '#f59e0b' : '#ef4444';
 
-  const handleExtend = () => {
-    if (!plan || !session?.gymId) return;
-    Alert.alert('Extend Membership', `Extend by ${plan.duration} month(s)?`, [
-      { text: 'Cancel', style: 'cancel' },
-      {
-        text: 'Extend', onPress: async () => {
-          const newEnd = new Date(member.endDate);
-          newEnd.setMonth(newEnd.getMonth() + plan.duration);
-          await updateMember(session.gymId!, member.id, {
-            endDate: newEnd.toISOString().slice(0, 10),
-            status: 'active',
-          });
-          await refreshGym();
-        },
-      },
-    ]);
-  };
-
-  const handleCancel = () => {
-    if (!session?.gymId) return;
-    Alert.alert('Cancel Membership', 'Are you sure?', [
-      { text: 'No', style: 'cancel' },
-      {
-        text: 'Yes', style: 'destructive', onPress: async () => {
-          await updateMember(session.gymId!, member.id, { status: 'cancelled' });
-          await refreshGym();
-          router.back();
-        },
-      },
-    ]);
+  const handleConfirm = async () => {
+    if (!session?.gymId || !confirmAction) return;
+    setActionLoading(true);
+    try {
+      if (confirmAction === 'extend' && plan) {
+        const newEnd = new Date(member.endDate);
+        newEnd.setMonth(newEnd.getMonth() + plan.duration);
+        await updateMember(session.gymId, member.id, {
+          endDate: newEnd.toISOString().slice(0, 10),
+          status: 'active',
+        });
+        await refreshGym();
+        setConfirmAction(null);
+      } else if (confirmAction === 'cancel') {
+        await updateMember(session.gymId, member.id, { status: 'cancelled' });
+        await refreshGym();
+        router.back();
+      }
+    } finally {
+      setActionLoading(false);
+    }
   };
 
   return (
@@ -143,10 +134,45 @@ export default function MemberDetailScreen() {
         />
       </View>
 
-      {member.status === 'active' && (
+      {member.status === 'active' && !confirmAction && (
         <View style={styles.actions}>
-          <StyledButton title="Extend Membership" onPress={handleExtend} style={{ flex: 1 }} />
-          <StyledButton title="Cancel" onPress={handleCancel} variant="destructive" style={{ flex: 1 }} />
+          <StyledButton title="Extend Membership" onPress={() => setConfirmAction('extend')} style={{ flex: 1 }} />
+          <StyledButton title="Cancel" onPress={() => setConfirmAction('cancel')} variant="destructive" style={{ flex: 1 }} />
+        </View>
+      )}
+
+      {confirmAction === 'extend' && plan && (
+        <View style={[styles.confirmBox, { backgroundColor: colors.primary + '11', borderColor: colors.primary + '44', borderRadius: colors.radius }]}>
+          <Text style={[styles.confirmTitle, { color: colors.foreground }]}>Extend membership?</Text>
+          <Text style={[styles.confirmSub, { color: colors.mutedForeground }]}>
+            Add {plan.duration} month{plan.duration > 1 ? 's' : ''} to {member.name}'s membership.
+          </Text>
+          <View style={styles.confirmBtns}>
+            <TouchableOpacity onPress={() => setConfirmAction(null)} style={[styles.confirmNo, { borderColor: colors.border, borderRadius: colors.radius }]}>
+              <Text style={{ color: colors.foreground, fontFamily: 'Inter_600SemiBold' }}>Cancel</Text>
+            </TouchableOpacity>
+            <TouchableOpacity onPress={handleConfirm} disabled={actionLoading} style={[styles.confirmYes, { backgroundColor: colors.primary, borderRadius: colors.radius }]}>
+              <Text style={{ color: '#fff', fontFamily: 'Inter_600SemiBold' }}>{actionLoading ? 'Extending...' : 'Extend'}</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      )}
+
+      {confirmAction === 'cancel' && (
+        <View style={[styles.confirmBox, { backgroundColor: '#ef444411', borderColor: '#ef444444', borderRadius: colors.radius }]}>
+          <Ionicons name="warning-outline" size={24} color="#ef4444" />
+          <Text style={[styles.confirmTitle, { color: colors.foreground }]}>Cancel membership?</Text>
+          <Text style={[styles.confirmSub, { color: colors.mutedForeground }]}>
+            {member.name}'s membership will be cancelled. This cannot be undone.
+          </Text>
+          <View style={styles.confirmBtns}>
+            <TouchableOpacity onPress={() => setConfirmAction(null)} style={[styles.confirmNo, { borderColor: colors.border, borderRadius: colors.radius }]}>
+              <Text style={{ color: colors.foreground, fontFamily: 'Inter_600SemiBold' }}>Keep</Text>
+            </TouchableOpacity>
+            <TouchableOpacity onPress={handleConfirm} disabled={actionLoading} style={[styles.confirmYes, { backgroundColor: '#ef4444', borderRadius: colors.radius }]}>
+              <Text style={{ color: '#fff', fontFamily: 'Inter_600SemiBold' }}>{actionLoading ? 'Cancelling...' : 'Yes, Cancel'}</Text>
+            </TouchableOpacity>
+          </View>
         </View>
       )}
     </ScrollView>
@@ -177,4 +203,10 @@ const styles = StyleSheet.create({
   rowLabel: { fontSize: 13, fontFamily: 'Inter_500Medium', fontWeight: '500' as const },
   rowValue: { fontSize: 14, fontFamily: 'Inter_600SemiBold', fontWeight: '600' as const },
   actions: { flexDirection: 'row', gap: 12 },
+  confirmBox: { padding: 20, borderWidth: 1, gap: 12, alignItems: 'center' },
+  confirmTitle: { fontSize: 17, fontFamily: 'Inter_700Bold', fontWeight: '700' as const },
+  confirmSub: { fontSize: 14, fontFamily: 'Inter_400Regular', textAlign: 'center', lineHeight: 20 },
+  confirmBtns: { flexDirection: 'row', gap: 12, width: '100%' },
+  confirmNo: { flex: 1, paddingVertical: 12, alignItems: 'center', borderWidth: 1 },
+  confirmYes: { flex: 1, paddingVertical: 12, alignItems: 'center' },
 });

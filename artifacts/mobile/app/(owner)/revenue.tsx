@@ -1,10 +1,8 @@
 import { Ionicons } from '@expo/vector-icons';
 import React, { useState } from 'react';
 import {
-  Alert,
   FlatList,
   Modal,
-  Platform,
   StyleSheet,
   Text,
   TouchableOpacity,
@@ -26,6 +24,7 @@ export default function RevenueScreen() {
   const [type, setType] = useState<'income' | 'expense'>('income');
   const [form, setForm] = useState({ description: '', amount: '', paymentMethod: 'cash' as PayMethod });
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
 
   const revenues = (gym?.revenues ?? []).slice().sort((a, b) => b.date.localeCompare(a.date));
   const totalIncome = revenues.filter(r => r.type === 'income').reduce((s, r) => s + r.amount, 0);
@@ -38,10 +37,9 @@ export default function RevenueScreen() {
   })).filter(b => b.amount > 0);
 
   const handleAdd = async () => {
-    if (!form.description || !form.amount) {
-      Alert.alert('Missing fields', 'Description and amount are required.');
-      return;
-    }
+    setError('');
+    if (!form.description.trim()) { setError('Description is required.'); return; }
+    if (!form.amount.trim() || isNaN(Number(form.amount))) { setError('Enter a valid amount.'); return; }
     if (!session?.gymId) return;
     setLoading(true);
     try {
@@ -55,6 +53,8 @@ export default function RevenueScreen() {
       await refreshGym();
       setModal(false);
       setForm({ description: '', amount: '', paymentMethod: 'cash' });
+    } catch {
+      setError('Failed to add entry. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -63,11 +63,7 @@ export default function RevenueScreen() {
   const renderItem = ({ item }: { item: RevenueEntry }) => (
     <View style={[styles.entry, { backgroundColor: colors.card, borderColor: colors.border, borderRadius: colors.radius }]}>
       <View style={[styles.entryIcon, { backgroundColor: item.type === 'income' ? '#22c55e22' : '#ef444422', borderRadius: 8 }]}>
-        <Ionicons
-          name={item.type === 'income' ? 'arrow-down' : 'arrow-up'}
-          size={16}
-          color={item.type === 'income' ? '#22c55e' : '#ef4444'}
-        />
+        <Ionicons name={item.type === 'income' ? 'arrow-down' : 'arrow-up'} size={16} color={item.type === 'income' ? '#22c55e' : '#ef4444'} />
       </View>
       <View style={{ flex: 1 }}>
         <Text style={[styles.entryDesc, { color: colors.foreground }]}>{item.description}</Text>
@@ -123,10 +119,7 @@ export default function RevenueScreen() {
         }
       />
 
-      <TouchableOpacity
-        onPress={() => setModal(true)}
-        style={[styles.fab, { backgroundColor: colors.primary }]}
-      >
+      <TouchableOpacity onPress={() => { setModal(true); setError(''); }} style={[styles.fab, { backgroundColor: colors.primary }]}>
         <Ionicons name="add" size={28} color="#fff" />
       </TouchableOpacity>
 
@@ -134,7 +127,7 @@ export default function RevenueScreen() {
         <View style={[styles.modal, { backgroundColor: colors.background }]}>
           <View style={styles.modalHeader}>
             <Text style={[styles.modalTitle, { color: colors.foreground }]}>Add Entry</Text>
-            <TouchableOpacity onPress={() => setModal(false)}>
+            <TouchableOpacity onPress={() => { setModal(false); setError(''); }}>
               <Ionicons name="close" size={24} color={colors.foreground} />
             </TouchableOpacity>
           </View>
@@ -143,7 +136,7 @@ export default function RevenueScreen() {
             {(['income', 'expense'] as const).map(t => (
               <TouchableOpacity
                 key={t}
-                onPress={() => setType(t)}
+                onPress={() => { setType(t); setError(''); }}
                 style={[styles.typeTab, { borderRadius: colors.radius - 2 }, type === t && { backgroundColor: t === 'income' ? '#22c55e' : '#ef4444' }]}
               >
                 <Text style={[styles.typeTabText, { color: type === t ? '#fff' : colors.mutedForeground }]}>
@@ -154,8 +147,8 @@ export default function RevenueScreen() {
           </View>
 
           <View style={{ gap: 16 }}>
-            <StyledInput label="Description" value={form.description} onChangeText={v => setForm(f => ({ ...f, description: v }))} placeholder="What is this for?" />
-            <StyledInput label="Amount (₹)" value={form.amount} onChangeText={v => setForm(f => ({ ...f, amount: v }))} placeholder="0" keyboardType="numeric" />
+            <StyledInput label="Description" value={form.description} onChangeText={v => { setForm(f => ({ ...f, description: v })); setError(''); }} placeholder="What is this for?" />
+            <StyledInput label="Amount (₹)" value={form.amount} onChangeText={v => { setForm(f => ({ ...f, amount: v })); setError(''); }} placeholder="0" keyboardType="numeric" />
             <View style={{ gap: 8 }}>
               <Text style={[{ color: colors.mutedForeground, fontSize: 13, fontFamily: 'Inter_500Medium' }]}>Payment Method</Text>
               <View style={{ flexDirection: 'row', gap: 8 }}>
@@ -170,6 +163,11 @@ export default function RevenueScreen() {
                 ))}
               </View>
             </View>
+            {error ? (
+              <View style={[{ padding: 12, borderWidth: 1, borderRadius: colors.radius, backgroundColor: '#ef444422', borderColor: '#ef444444' }]}>
+                <Text style={{ color: '#ef4444', fontFamily: 'Inter_500Medium', fontSize: 14 }}>{error}</Text>
+              </View>
+            ) : null}
             <StyledButton title="Add Entry" onPress={handleAdd} loading={loading} />
           </View>
         </View>

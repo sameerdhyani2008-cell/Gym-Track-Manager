@@ -1,7 +1,6 @@
 import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import {
-  Alert,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
@@ -29,32 +28,24 @@ export default function LoginScreen() {
   const [trainerId, setTrainerId] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
 
   const handleLogin = async () => {
+    setError('');
     setLoading(true);
     try {
       if (role === 'owner') {
-        if (!gymId.trim() || !password.trim()) {
-          Alert.alert('Error', 'Please enter Gym ID and password');
-          return;
-        }
-        const gym = await loginOwner(gymId.trim(), password.trim());
-        if (!gym) {
-          Alert.alert('Error', 'Invalid Gym ID or password');
-          return;
-        }
+        if (!gymId.trim()) { setError('Please enter your Gym ID.'); return; }
+        if (!password.trim()) { setError('Please enter your password.'); return; }
+        const gym = await loginOwner(gymId.trim().toUpperCase(), password.trim());
+        if (!gym) { setError('Invalid Gym ID or password. Check your credentials and try again.'); return; }
         setAuth({ gymId: gym.id, role: 'owner' }, gym);
         router.replace('/(owner)/dashboard');
       } else {
-        if (!trainerId.trim() || !password.trim()) {
-          Alert.alert('Error', 'Please enter Trainer ID and password');
-          return;
-        }
-        const result = await loginTrainer(trainerId.trim(), password.trim());
-        if (!result) {
-          Alert.alert('Error', 'Invalid Trainer ID or password');
-          return;
-        }
+        if (!trainerId.trim()) { setError('Please enter your Trainer ID.'); return; }
+        if (!password.trim()) { setError('Please enter your password.'); return; }
+        const result = await loginTrainer(trainerId.trim().toUpperCase(), password.trim());
+        if (!result) { setError('Invalid Trainer ID or password. Check your credentials and try again.'); return; }
         setAuth({ gymId: result.gym.id, role: 'trainer', trainerId: result.trainer.id }, result.gym, result.trainer);
         router.replace('/(trainer)/attendance');
       }
@@ -86,7 +77,7 @@ export default function LoginScreen() {
           {(['owner', 'trainer'] as Role[]).map((r) => (
             <TouchableOpacity
               key={r}
-              onPress={() => setRole(r)}
+              onPress={() => { setRole(r); setError(''); }}
               style={[
                 styles.tab,
                 { borderRadius: colors.radius - 2 },
@@ -103,16 +94,46 @@ export default function LoginScreen() {
         <View style={styles.form}>
           {role === 'owner' ? (
             <>
-              <StyledInput label="Gym ID" value={gymId} onChangeText={setGymId} placeholder="e.g. JS3210I" autoCapitalize="characters" />
-              <StyledInput label="Password" value={password} onChangeText={setPassword} placeholder="Your password" secureTextEntry />
+              <StyledInput
+                label="Gym ID"
+                value={gymId}
+                onChangeText={v => { setGymId(v); setError(''); }}
+                placeholder="e.g. JS3210I"
+                autoCapitalize="characters"
+              />
+              <StyledInput
+                label="Password"
+                value={password}
+                onChangeText={v => { setPassword(v); setError(''); }}
+                placeholder="Your password"
+                secureTextEntry
+              />
             </>
           ) : (
             <>
-              <StyledInput label="Trainer ID" value={trainerId} onChangeText={setTrainerId} placeholder="e.g. TRJSJS3247" autoCapitalize="characters" />
-              <StyledInput label="Password" value={password} onChangeText={setPassword} placeholder="Your password" secureTextEntry />
+              <StyledInput
+                label="Trainer ID"
+                value={trainerId}
+                onChangeText={v => { setTrainerId(v); setError(''); }}
+                placeholder="e.g. TRJSJS3247"
+                autoCapitalize="characters"
+              />
+              <StyledInput
+                label="Password"
+                value={password}
+                onChangeText={v => { setPassword(v); setError(''); }}
+                placeholder="Your password"
+                secureTextEntry
+              />
             </>
           )}
         </View>
+
+        {error ? (
+          <View style={[styles.errorBox, { backgroundColor: '#ef444422', borderColor: '#ef444444', borderRadius: colors.radius }]}>
+            <Text style={[styles.errorText, { color: '#ef4444' }]}>{error}</Text>
+          </View>
+        ) : null}
 
         <TouchableOpacity onPress={() => router.push('/forgot-password')} style={{ alignSelf: 'flex-end' }}>
           <Text style={[styles.forgot, { color: colors.primary }]}>Forgot password?</Text>
@@ -140,6 +161,8 @@ const styles = StyleSheet.create({
   tab: { flex: 1, paddingVertical: 10, alignItems: 'center' },
   tabText: { fontSize: 14, fontFamily: 'Inter_600SemiBold', fontWeight: '600' as const },
   form: { gap: 16 },
+  errorBox: { padding: 14, borderWidth: 1 },
+  errorText: { fontSize: 14, fontFamily: 'Inter_500Medium', fontWeight: '500' as const, lineHeight: 20 },
   forgot: { fontSize: 13, fontFamily: 'Inter_500Medium' },
   signup: { fontSize: 14, fontFamily: 'Inter_400Regular' },
 });
