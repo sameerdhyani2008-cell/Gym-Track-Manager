@@ -10,10 +10,10 @@ export default function OwnerLayout() {
   return (
     <Tabs
       screenOptions={{
-        headerStyle: { backgroundColor: colors.background },
+        headerStyle: { backgroundColor: colors.background, elevation: 4, shadowOpacity: 0.12, shadowRadius: 4, shadowOffset: { width: 0, height: 2 } },
         headerTintColor: colors.foreground,
         headerTitleStyle: { fontFamily: 'Inter_600SemiBold', fontSize: 17 },
-        headerShadowVisible: false,
+        headerShadowVisible: true,
         tabBarStyle: {
           backgroundColor: colors.background,
           borderTopColor: colors.border,

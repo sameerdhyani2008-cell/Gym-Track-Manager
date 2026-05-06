@@ -123,7 +123,7 @@ export default function AttendanceScreen() {
             subtitle="Active members will appear here"
           />
         }
-        scrollEnabled={!!filtered.length}
+        scrollEnabled={true}
       />
     </View>
   );

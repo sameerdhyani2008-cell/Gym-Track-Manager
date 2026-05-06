@@ -85,15 +85,15 @@ export default function RevenueScreen() {
           <>
             <View style={styles.statsRow}>
               <View style={[styles.statCard, { backgroundColor: '#22c55e22', borderRadius: colors.radius }]}>
-                <Text style={[styles.statLabel, { color: '#22c55e' }]}>Income</Text>
+                <Text style={[styles.statLabel, { color: '#22c55e' }]}>Revenue</Text>
                 <Text style={[styles.statVal, { color: '#22c55e' }]}>₹{totalIncome.toLocaleString()}</Text>
               </View>
               <View style={[styles.statCard, { backgroundColor: '#ef444422', borderRadius: colors.radius }]}>
-                <Text style={[styles.statLabel, { color: '#ef4444' }]}>Expenses</Text>
+                <Text style={[styles.statLabel, { color: '#ef4444' }]}>Expense</Text>
                 <Text style={[styles.statVal, { color: '#ef4444' }]}>₹{totalExpenses.toLocaleString()}</Text>
               </View>
               <View style={[styles.statCard, { backgroundColor: colors.primary + '22', borderRadius: colors.radius }]}>
-                <Text style={[styles.statLabel, { color: colors.primary }]}>Net</Text>
+                <Text style={[styles.statLabel, { color: colors.primary }]}>Profit</Text>
                 <Text style={[styles.statVal, { color: colors.primary }]}>₹{net.toLocaleString()}</Text>
               </View>
             </View>

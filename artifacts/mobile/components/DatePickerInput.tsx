@@ -98,7 +98,8 @@ export function DatePickerInput({ label, value, onChange }: Props) {
   const [selMonth, setSelMonth] = useState(initMonth);
   const [selDay, setSelDay] = useState(initDay);
 
-  const daysInMonth = new Date(currentYear - selYear, selMonth + 1, 0).getDate();
+  const selectedYear = parseInt(years[selYear] ?? String(currentYear));
+  const daysInMonth = new Date(selectedYear, selMonth + 1, 0).getDate();
   const days = Array.from({ length: daysInMonth }, (_, i) => String(i + 1).padStart(2, '0'));
 
   const handleConfirm = () => {
