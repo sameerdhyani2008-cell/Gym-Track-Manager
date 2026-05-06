@@ -12,6 +12,12 @@ export interface Member {
   email?: string;
   photo?: string;
   dateOfBirth?: string;
+  // Structured medical fields
+  medicalConditions?: string;
+  previousInjuries?: string;
+  bloodType?: string;
+  allergies?: string;
+  // Legacy single field (kept for backwards compat)
   medicalInfo?: string;
   planId: string;
   planName?: string;

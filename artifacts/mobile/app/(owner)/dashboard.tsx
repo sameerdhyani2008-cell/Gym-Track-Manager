@@ -1,12 +1,15 @@
+import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import React, { useCallback, useState } from 'react';
 import {
   Dimensions,
+  Image,
   Platform,
   RefreshControl,
   ScrollView,
   StyleSheet,
   Text,
+  TouchableOpacity,
   View,
 } from 'react-native';
 import { LineChart } from 'react-native-chart-kit';
@@ -49,9 +52,24 @@ export default function DashboardScreen() {
       contentContainerStyle={styles.container}
       refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.primary} />}
     >
+      {/* The Track Logo */}
+      <View style={styles.logoRow}>
+        <Image
+          source={require('../../assets/images/icon.png')}
+          style={styles.logoIcon}
+          resizeMode="contain"
+        />
+        <View>
+          <Text style={[styles.logoText, { color: colors.primary }]}>The Track</Text>
+          <Text style={[styles.logoSub, { color: colors.mutedForeground }]}>Gym Manager</Text>
+        </View>
+      </View>
+
       <View style={styles.header}>
         <Text style={[styles.gymName, { color: colors.foreground }]}>{gym.name}</Text>
-        <Text style={[styles.date, { color: colors.mutedForeground }]}>{new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}</Text>
+        <Text style={[styles.date, { color: colors.mutedForeground }]}>
+          {new Date().toLocaleDateString('en-IN', { weekday: 'long', month: 'long', day: 'numeric' })}
+        </Text>
       </View>
 
       <View style={styles.statsRow}>
@@ -90,10 +108,20 @@ export default function DashboardScreen() {
       )}
 
       {gym.plan === 'free' && (
-        <View style={[styles.proCard, { backgroundColor: colors.primary + '11', borderRadius: colors.radius, borderColor: colors.primary + '33' }]}>
-          <Text style={[styles.proTitle, { color: colors.primary }]}>Unlock Pro Features</Text>
-          <Text style={[styles.proSub, { color: colors.mutedForeground }]}>Footfall analytics, previous members, advanced reports</Text>
-        </View>
+        <TouchableOpacity
+          onPress={() => router.push('/(owner)/subscription')}
+          style={[styles.proCard, { backgroundColor: colors.primary + '11', borderRadius: colors.radius, borderColor: colors.primary + '33' }]}
+          activeOpacity={0.8}
+        >
+          <View style={styles.proHeader}>
+            <Ionicons name="star" size={18} color={colors.primary} />
+            <Text style={[styles.proTitle, { color: colors.primary }]}>Unlock Pro Features</Text>
+          </View>
+          <Text style={[styles.proSub, { color: colors.mutedForeground }]}>
+            Footfall analytics, previous members, advanced reports — ₹99/month
+          </Text>
+          <Text style={[styles.proLink, { color: colors.primary }]}>View plans →</Text>
+        </TouchableOpacity>
       )}
 
       {expiring.length > 0 && (
@@ -113,15 +141,21 @@ export default function DashboardScreen() {
 
 const styles = StyleSheet.create({
   container: { padding: 20, gap: 16, paddingBottom: 40 },
-  header: { gap: 4, marginBottom: 4 },
+  logoRow: { flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 4 },
+  logoIcon: { width: 36, height: 36, borderRadius: 8 },
+  logoText: { fontSize: 18, fontFamily: 'Inter_700Bold', fontWeight: '700' as const, letterSpacing: 0.3 },
+  logoSub: { fontSize: 11, fontFamily: 'Inter_400Regular' },
+  header: { gap: 2, marginBottom: 4 },
   gymName: { fontSize: 22, fontFamily: 'Inter_700Bold', fontWeight: '700' as const },
   date: { fontSize: 13, fontFamily: 'Inter_400Regular' },
   statsRow: { flexDirection: 'row', gap: 12 },
   chart: { padding: 16, borderWidth: 1, gap: 12 },
   chartTitle: { fontSize: 15, fontFamily: 'Inter_600SemiBold', fontWeight: '600' as const },
-  proCard: { padding: 16, borderWidth: 1, gap: 6 },
+  proCard: { padding: 16, borderWidth: 1, gap: 8 },
+  proHeader: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   proTitle: { fontSize: 15, fontFamily: 'Inter_600SemiBold', fontWeight: '600' as const },
-  proSub: { fontSize: 13, fontFamily: 'Inter_400Regular' },
+  proSub: { fontSize: 13, fontFamily: 'Inter_400Regular', lineHeight: 18 },
+  proLink: { fontSize: 13, fontFamily: 'Inter_600SemiBold', fontWeight: '600' as const },
   section: { padding: 16, borderWidth: 1, gap: 12 },
   sectionTitle: { fontSize: 15, fontFamily: 'Inter_600SemiBold', fontWeight: '600' as const },
   expiringRow: { flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 8, borderBottomWidth: StyleSheet.hairlineWidth },

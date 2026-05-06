@@ -70,6 +70,8 @@ export default function MemberDetailScreen() {
     }
   };
 
+  const hasMedical = member.medicalConditions || member.previousInjuries || member.bloodType || member.allergies || member.medicalInfo;
+
   return (
     <ScrollView
       style={{ flex: 1, backgroundColor: colors.background }}
@@ -90,6 +92,7 @@ export default function MemberDetailScreen() {
         </View>
       </View>
 
+      {/* Basic Info */}
       <View style={[styles.card, { backgroundColor: colors.card, borderColor: colors.border, borderRadius: colors.radius }]}>
         <Row label="Phone" value={member.phone} colors={colors} />
         {member.email ? <Row label="Email" value={member.email} colors={colors} /> : null}
@@ -105,13 +108,31 @@ export default function MemberDetailScreen() {
         <Row label="Payment" value={member.paymentMethod.toUpperCase()} colors={colors} />
       </View>
 
-      {member.medicalInfo ? (
+      {/* Medical */}
+      {hasMedical && (
         <View style={[styles.card, { backgroundColor: colors.card, borderColor: colors.border, borderRadius: colors.radius }]}>
-          <Text style={[styles.cardTitle, { color: colors.foreground }]}>Medical Info</Text>
-          <Text style={[styles.medText, { color: colors.mutedForeground }]}>{member.medicalInfo}</Text>
+          <View style={styles.medHeader}>
+            <Ionicons name="medical-outline" size={16} color="#ef4444" />
+            <Text style={[styles.cardTitle, { color: colors.foreground }]}>Medical Details</Text>
+          </View>
+          {member.bloodType ? <Row label="Blood Type" value={member.bloodType} colors={colors} accent="#ef4444" /> : null}
+          {member.medicalConditions ? (
+            <MedBlock label="Conditions" value={member.medicalConditions} colors={colors} />
+          ) : null}
+          {member.previousInjuries ? (
+            <MedBlock label="Previous Injuries" value={member.previousInjuries} colors={colors} />
+          ) : null}
+          {member.allergies ? (
+            <MedBlock label="Allergies" value={member.allergies} colors={colors} />
+          ) : null}
+          {/* Legacy fallback */}
+          {member.medicalInfo && !member.medicalConditions && !member.previousInjuries ? (
+            <MedBlock label="Medical Info" value={member.medicalInfo} colors={colors} />
+          ) : null}
         </View>
-      ) : null}
+      )}
 
+      {/* Calendar */}
       <View style={[styles.calendarCard, { backgroundColor: colors.card, borderColor: colors.border, borderRadius: colors.radius }]}>
         <Text style={[styles.cardTitle, { color: colors.foreground }]}>Attendance Calendar</Text>
         <Calendar
@@ -134,6 +155,7 @@ export default function MemberDetailScreen() {
         />
       </View>
 
+      {/* Actions */}
       {member.status === 'active' && !confirmAction && (
         <View style={styles.actions}>
           <StyledButton title="Extend Membership" onPress={() => setConfirmAction('extend')} style={{ flex: 1 }} />
@@ -188,6 +210,15 @@ function Row({ label, value, colors, accent }: { label: string; value: string; c
   );
 }
 
+function MedBlock({ label, value, colors }: { label: string; value: string; colors: ReturnType<typeof useColors> }) {
+  return (
+    <View style={{ gap: 4 }}>
+      <Text style={[styles.rowLabel, { color: colors.mutedForeground }]}>{label}</Text>
+      <Text style={[styles.medText, { color: colors.foreground }]}>{value}</Text>
+    </View>
+  );
+}
+
 const styles = StyleSheet.create({
   container: { padding: 20, gap: 16, paddingBottom: 40 },
   header: { alignItems: 'center', gap: 10 },
@@ -196,7 +227,8 @@ const styles = StyleSheet.create({
   statusBadge: { paddingHorizontal: 12, paddingVertical: 4 },
   statusText: { fontSize: 12, fontFamily: 'Inter_600SemiBold', fontWeight: '600' as const },
   card: { padding: 16, borderWidth: 1, gap: 12 },
-  cardTitle: { fontSize: 15, fontFamily: 'Inter_700Bold', fontWeight: '700' as const, marginBottom: 4 },
+  medHeader: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+  cardTitle: { fontSize: 15, fontFamily: 'Inter_700Bold', fontWeight: '700' as const },
   medText: { fontSize: 14, fontFamily: 'Inter_400Regular', lineHeight: 20 },
   calendarCard: { padding: 16, borderWidth: 1, gap: 12 },
   row: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },

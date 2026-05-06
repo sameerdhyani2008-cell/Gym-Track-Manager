@@ -11,6 +11,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import { DatePickerInput } from '@/components/DatePickerInput';
 import { StyledButton } from '@/components/StyledButton';
 import { StyledInput } from '@/components/StyledInput';
 import { useAuth } from '@/context/AuthContext';
@@ -18,6 +19,7 @@ import { useColors } from '@/hooks/useColors';
 import { addMember } from '@/store';
 
 type PayMethod = 'cash' | 'upi' | 'card' | 'other';
+const BLOOD_TYPES = ['A+', 'A−', 'B+', 'B−', 'AB+', 'AB−', 'O+', 'O−', 'Unknown'];
 
 export default function AddMemberScreen() {
   const colors = useColors();
@@ -31,7 +33,10 @@ export default function AddMemberScreen() {
     phone: '',
     email: '',
     dateOfBirth: '',
-    medicalInfo: '',
+    medicalConditions: '',
+    previousInjuries: '',
+    bloodType: '',
+    allergies: '',
     planId: '',
     startDate: new Date().toISOString().slice(0, 10),
     amountPaid: '',
@@ -81,7 +86,10 @@ export default function AddMemberScreen() {
         phone: form.phone,
         email: form.email || undefined,
         dateOfBirth: form.dateOfBirth || undefined,
-        medicalInfo: form.medicalInfo || undefined,
+        medicalConditions: form.medicalConditions || undefined,
+        previousInjuries: form.previousInjuries || undefined,
+        bloodType: form.bloodType || undefined,
+        allergies: form.allergies || undefined,
         planId: form.planId,
         planName: selectedPlan?.name,
         startDate: form.startDate,
@@ -106,30 +114,84 @@ export default function AddMemberScreen() {
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
       <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled">
+        {/* Photo */}
         <TouchableOpacity onPress={pickPhoto} style={[styles.photoBtn, { borderColor: colors.border, borderRadius: 44, backgroundColor: colors.card }]}>
-          {photo ? (
-            <Image source={{ uri: photo }} style={styles.photo} />
-          ) : (
-            <Text style={[styles.photoPlaceholder, { color: colors.mutedForeground }]}>Add Photo</Text>
-          )}
+          {photo
+            ? <Image source={{ uri: photo }} style={styles.photo} />
+            : <Text style={[styles.photoPlaceholder, { color: colors.mutedForeground }]}>Add Photo</Text>
+          }
         </TouchableOpacity>
 
+        {/* Personal Info */}
         <View style={styles.section}>
           <Text style={[styles.sectionTitle, { color: colors.foreground }]}>Personal Info</Text>
           <StyledInput label="Full Name *" value={form.name} onChangeText={update('name')} placeholder="Member name" />
           <StyledInput label="Phone *" value={form.phone} onChangeText={update('phone')} placeholder="Phone number" keyboardType="phone-pad" />
           <StyledInput label="Email" value={form.email} onChangeText={update('email')} placeholder="Email (optional)" keyboardType="email-address" autoCapitalize="none" />
-          <StyledInput label="Date of Birth" value={form.dateOfBirth} onChangeText={update('dateOfBirth')} placeholder="YYYY-MM-DD" />
-          <StyledInput label="Medical Info" value={form.medicalInfo} onChangeText={update('medicalInfo')} placeholder="Any medical conditions" multiline numberOfLines={3} />
+          <DatePickerInput label="Date of Birth" value={form.dateOfBirth} onChange={update('dateOfBirth')} />
         </View>
 
+        {/* Medical Info */}
+        <View style={styles.section}>
+          <Text style={[styles.sectionTitle, { color: colors.foreground }]}>Medical Details</Text>
+
+          {/* Blood Type */}
+          <View style={{ gap: 8 }}>
+            <Text style={[styles.label, { color: colors.mutedForeground }]}>Blood Type</Text>
+            <View style={styles.bloodRow}>
+              {BLOOD_TYPES.map(bt => (
+                <TouchableOpacity
+                  key={bt}
+                  onPress={() => setForm(f => ({ ...f, bloodType: f.bloodType === bt ? '' : bt }))}
+                  style={[
+                    styles.bloodBtn,
+                    {
+                      backgroundColor: form.bloodType === bt ? colors.primary : colors.card,
+                      borderColor: form.bloodType === bt ? colors.primary : colors.border,
+                      borderRadius: colors.radius,
+                    },
+                  ]}
+                >
+                  <Text style={[styles.bloodText, { color: form.bloodType === bt ? '#fff' : colors.foreground }]}>{bt}</Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          </View>
+
+          <StyledInput
+            label="Medical Conditions"
+            value={form.medicalConditions}
+            onChangeText={update('medicalConditions')}
+            placeholder="e.g. Diabetes, Hypertension, Asthma..."
+            multiline
+            numberOfLines={3}
+          />
+          <StyledInput
+            label="Previous Injuries"
+            value={form.previousInjuries}
+            onChangeText={update('previousInjuries')}
+            placeholder="e.g. Knee ligament tear (2022), Back injury..."
+            multiline
+            numberOfLines={3}
+          />
+          <StyledInput
+            label="Allergies"
+            value={form.allergies}
+            onChangeText={update('allergies')}
+            placeholder="e.g. Peanuts, Penicillin, Latex..."
+            multiline
+            numberOfLines={2}
+          />
+        </View>
+
+        {/* Membership */}
         <View style={styles.section}>
           <Text style={[styles.sectionTitle, { color: colors.foreground }]}>Membership</Text>
           <Text style={[styles.label, { color: colors.mutedForeground }]}>Select Plan *</Text>
           {(gym?.plans ?? []).length === 0 ? (
             <View style={[styles.noPlans, { backgroundColor: colors.card, borderColor: colors.border, borderRadius: colors.radius }]}>
               <Text style={{ color: colors.mutedForeground, fontFamily: 'Inter_400Regular', fontSize: 14 }}>
-                No plans found. Create plans first in More → Plans.
+                No plans found. Create plans in More → Plans first.
               </Text>
             </View>
           ) : (
@@ -156,7 +218,11 @@ export default function AddMemberScreen() {
           )}
 
           <StyledInput label="Start Date" value={form.startDate} onChangeText={update('startDate')} placeholder="YYYY-MM-DD" />
-          {endDate ? <Text style={[styles.endDate, { color: colors.mutedForeground }]}>End Date: {endDate}</Text> : null}
+          {endDate ? (
+            <View style={[styles.endDateRow, { backgroundColor: '#22c55e11', borderColor: '#22c55e33', borderRadius: colors.radius }]}>
+              <Text style={{ color: '#22c55e', fontFamily: 'Inter_500Medium', fontSize: 13 }}>📅 Expires: {endDate}</Text>
+            </View>
+          ) : null}
 
           <StyledInput
             label="Amount Paid (₹)"
@@ -209,13 +275,16 @@ const styles = StyleSheet.create({
   section: { gap: 14 },
   sectionTitle: { fontSize: 16, fontFamily: 'Inter_700Bold', fontWeight: '700' as const },
   label: { fontSize: 13, fontFamily: 'Inter_500Medium', fontWeight: '500' as const },
+  bloodRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
+  bloodBtn: { paddingHorizontal: 12, paddingVertical: 8, borderWidth: 1, minWidth: 52, alignItems: 'center' },
+  bloodText: { fontSize: 13, fontFamily: 'Inter_600SemiBold', fontWeight: '600' as const },
   noPlans: { padding: 14, borderWidth: 1 },
   planGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
   planCard: { padding: 12, borderWidth: 1, minWidth: 90, alignItems: 'center', gap: 4 },
   planName: { fontSize: 13, fontFamily: 'Inter_600SemiBold', fontWeight: '600' as const },
   planDur: { fontSize: 11, fontFamily: 'Inter_400Regular' },
   planPrice: { fontSize: 15, fontFamily: 'Inter_700Bold', fontWeight: '700' as const },
-  endDate: { fontSize: 13, fontFamily: 'Inter_500Medium' },
+  endDateRow: { padding: 10, borderWidth: 1 },
   payRow: { flexDirection: 'row', gap: 8 },
   payBtn: { flex: 1, paddingVertical: 8, alignItems: 'center', borderWidth: 1 },
   payText: { fontSize: 11, fontFamily: 'Inter_600SemiBold', fontWeight: '600' as const },

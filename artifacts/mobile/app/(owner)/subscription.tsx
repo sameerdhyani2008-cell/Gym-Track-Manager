@@ -49,7 +49,7 @@ export default function SubscriptionScreen() {
         />
         <TierCard
           title="Pro"
-          price="₹999"
+          price="₹99"
           period="/ month"
           features={PRO_FEATURES}
           active={isPro}
@@ -61,7 +61,7 @@ export default function SubscriptionScreen() {
 
       {!isPro && (
         <View style={[styles.upgradeBox, { backgroundColor: colors.primary + '11', borderColor: colors.primary + '33', borderRadius: colors.radius }]}>
-          <Text style={[styles.upgradeTitle, { color: colors.primary }]}>Upgrade to Pro</Text>
+          <Text style={[styles.upgradeTitle, { color: colors.primary }]}>Upgrade to Pro — ₹99/month</Text>
           <Text style={[styles.upgradeSub, { color: colors.mutedForeground }]}>
             Contact us at support@thetrack.app to upgrade your gym to Pro and unlock all features.
           </Text>
