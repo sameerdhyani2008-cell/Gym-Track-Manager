@@ -1,0 +1,94 @@
+App name: The Track — Gym Manager
+I am uploading my complete, working web app source code. Your job is to convert it 1:1 into a React Native + Expo mobile app. Do NOT build a new app or add features. Convert exactly what exists.
+
+WHAT THIS APP IS:
+A gym management system called "The Track" with two user roles — Owner and Trainer. All data is stored locally (no backend). It has full dark mode support.
+
+SCREENS TO BUILD (convert each route file exactly):
+Auth screens:
+
+Welcome screen (welcome.tsx) — landing page
+Login (login.tsx) — Owner logs in with Gym ID + password; Trainer logs in with Trainer ID + password
+Signup (signup.tsx) — register a new gym (name, owner details, city, state, plans setup)
+Forgot Password (forgot-password.tsx) — OTP-based reset (mock, shown on screen)
+
+Owner screens (after login as Owner):
+
+Dashboard (_owner.dashboard.tsx) — stats cards (active members, present today, expiring soon, revenue this month) + 30-day footfall area chart (Pro only)
+Members — Current (_owner.members.index.tsx) — list of active members with search
+Members — Previous (_owner.members.previous.tsx) — expired/cancelled members (Pro feature)
+Member Detail (_owner.members.$id.tsx) — member profile, medical info, membership periods, attendance calendar, extend/cancel membership
+Add Member (_owner.members.new.tsx) — form to register new member with photo, plan selection, payment
+Attendance (_owner.attendance.tsx) — mark/unmark daily attendance for all members
+Revenue (_owner.revenue.tsx) — income and expenses tracking, payment method breakdown
+Trainers (_owner.trainers.tsx) — add/remove trainers, view trainer IDs
+Plans (_owner.plans.tsx) — create/delete membership plans (name, duration, price)
+Settings (_owner.settings.tsx) — gym profile settings, dark mode toggle
+Subscription (_owner.subscription.tsx) — Free vs Pro tier display
+
+Trainer screens (after login as Trainer):
+
+Attendance (_trainer.trainer.attendance.tsx) — mark attendance
+Members (_trainer.trainer.members.index.tsx) — view members list
+Member Detail (_trainer.trainer.members.$id.tsx) — read-only member view
+Add Member (_trainer.trainer.members.new.tsx) — add new member
+Settings (_trainer.trainer.settings.tsx) — appearance/dark mode
+
+
+NAVIGATION STRUCTURE:
+
+Use expo-router with a bottom tab bar for main screens
+Owner bottom tabs: Dashboard, Members, Attendance, Revenue, + "More" button (for Trainers, Settings, Subscription)
+Trainer bottom tabs: Attendance, Members, Appearance
+Members tab opens a popup menu with "Current Members" and "Previous Members (Pro)"
+Desktop/tablet: use a left sidebar (same as the web version)
+
+
+DATA & STATE (copy this logic exactly):
+
+Replace localStorage with AsyncStorage from @react-native-async-storage/async-storage
+All functions in store.ts stay the same — just swap storage calls
+Keep all TypeScript types from types.ts unchanged
+Data keys: gym_app_gyms_v1 and gym_app_session_v1
+Auth logic: loginOwner(gymId, password), loginTrainer(trainerId, password), logout()
+Gym ID is auto-generated from owner initials + phone digits + city last letter
+Trainer ID format: TR + name initials + gym ID prefix + 2 random digits
+
+
+UI STYLE (match exactly):
+
+Dark background: #09090b, Cards: #18181b, Borders: #27272a
+Primary accent: indigo #6366f1
+Nav icon colors: Dashboard=#6366f1, Members=#3b82f6, Attendance=#22c55e, Revenue=#f59e0b, Trainers=#f97316, Settings=#a855f7, Subscription=#f59e0b
+Each nav icon has a matching translucent background circle (20% opacity of icon color)
+Active tab shows colored icon + colored label; inactive shows gray
+Cards use rounded-2xl corners with subtle borders
+Typography: bold headings, small muted subtext below
+Support dark mode toggle stored in AsyncStorage key gym_app_dark_mode
+
+
+COMPATIBILITY REQUIREMENTS:
+
+Android: support Android 9 (API 28) and above — covers all Android phones from 2019 onwards
+iOS: support iOS 12 and above — covers iPhone X on its original OS and all newer iPhones
+Set minSdkVersion: 28 in Android config
+Set deploymentTarget: "12.0" in iOS config
+Use Expo SDK 51 or newer
+
+
+LIBRARIES TO USE:
+
+expo-router — navigation
+@react-native-async-storage/async-storage — replaces localStorage
+react-native-chart-kit or victory-native — replaces recharts for the footfall chart
+expo-image-picker — replaces web file input for member photos (stored as base64)
+@expo/vector-icons (Ionicons or Feather) — replaces lucide-react icons
+react-native-calendars — for member attendance calendar view
+No shadcn/ui, no Tailwind — use React Native StyleSheet throughout
+
+
+START BY:
+
+Setting up expo init with TypeScript + expo-router
+Copying types.ts and store.ts (with AsyncStorage swap) directly
+Converting screens one by one starting with: Welcome → Login → Signup → Dashboard → Members

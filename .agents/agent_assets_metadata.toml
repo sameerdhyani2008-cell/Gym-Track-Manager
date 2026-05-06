@@ -1,0 +1,8 @@
+uploads = []
+outputs = []
+
+[[generated]]
+id = "d4X_EEmObZQKuw2DYUl8s"
+uri = "file://artifacts/mobile/assets/images/icon.png"
+type = "image"
+title = "the track gym manager icon"

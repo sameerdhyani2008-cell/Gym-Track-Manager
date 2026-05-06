@@ -1,45 +1,70 @@
-# [Project name]
+# The Track — Gym Manager
 
-_Replace the heading above with the project's name, and this line with one sentence describing what this app does for users._
+A React Native + Expo mobile app for managing gyms — owners and trainers can track members, attendance, revenue, plans, and more. All data stored locally via AsyncStorage.
 
 ## Run & Operate
 
-- `pnpm --filter @workspace/api-server run dev` — run the API server (port 5000)
+- Mobile: restart `artifacts/mobile: expo` workflow to start the Expo dev server
+- API: `pnpm --filter @workspace/api-server run dev` — API server (port 5000)
 - `pnpm run typecheck` — full typecheck across all packages
 - `pnpm run build` — typecheck + build all packages
-- `pnpm --filter @workspace/api-spec run codegen` — regenerate API hooks and Zod schemas from the OpenAPI spec
-- `pnpm --filter @workspace/db run push` — push DB schema changes (dev only)
-- Required env: `DATABASE_URL` — Postgres connection string
+- Required env: `DATABASE_URL` — Postgres connection string (API only)
 
 ## Stack
 
 - pnpm workspaces, Node.js 24, TypeScript 5.9
-- API: Express 5
-- DB: PostgreSQL + Drizzle ORM
-- Validation: Zod (`zod/v4`), `drizzle-zod`
-- API codegen: Orval (from OpenAPI spec)
-- Build: esbuild (CJS bundle)
+- Mobile: Expo SDK 54, expo-router (file-based routing), React Native 0.81
+- State: React Context (AuthContext, ThemeContext) + AsyncStorage
+- UI: React Native StyleSheet, @expo/vector-icons (Ionicons), Inter font
+- Charts: react-native-chart-kit + react-native-svg
+- Calendar: react-native-calendars
+- Photos: expo-image-picker (base64 storage)
+- API: Express 5, PostgreSQL + Drizzle ORM
 
 ## Where things live
 
-_Populate as you build — short repo map plus pointers to the source-of-truth file for DB schema, API contracts, theme files, etc._
+- `artifacts/mobile/` — Expo app
+  - `app/` — expo-router screens
+    - `(owner)/` — owner tab layout + screens (dashboard, members, attendance, revenue, trainers, plans, settings, subscription, more)
+    - `(trainer)/` — trainer tab layout + screens (attendance, members, settings)
+    - `welcome.tsx`, `login.tsx`, `signup.tsx`, `forgot-password.tsx` — auth screens
+  - `context/AuthContext.tsx` — session + gym state
+  - `context/ThemeContext.tsx` — dark mode (AsyncStorage persisted)
+  - `store/index.ts` — all AsyncStorage CRUD functions
+  - `types/index.ts` — TypeScript types (Gym, Member, Trainer, Plan, etc.)
+  - `constants/colors.ts` — light + dark theme tokens
+- `artifacts/api-server/` — Express backend (health check only)
+- `lib/api-spec/openapi.yaml` — OpenAPI spec
 
 ## Architecture decisions
 
-_Populate as you build — non-obvious choices a reader couldn't infer from the code (3-5 bullets)._
+- All gym data stored in AsyncStorage with keys `gym_app_gyms_v1` and `gym_app_session_v1`
+- Gym IDs are auto-generated from owner initials + phone digits + city last char (e.g., JS3210I)
+- Trainer IDs format: TR + name initials + gym ID prefix + 2 random digits
+- ThemeContext defaults to dark mode (matches original web app's dark-first design)
+- No backend required — fully offline-first mobile app
+- Owner and trainer share the same gym data; separate layouts handle role-based access
 
 ## Product
 
-_Describe the high-level user-facing capabilities of this app once they exist._
+- Owner: Create gym, manage members (add/extend/cancel), track daily attendance, record revenue & expenses, manage trainers and membership plans, view dashboard with stats and footfall chart (Pro)
+- Trainer: Mark attendance, view/add members, manage appearance
 
 ## User preferences
 
-_Populate as you build — explicit user instructions worth remembering across sessions._
+- Must be a 1:1 conversion from the web app — no new features
+- Android 9+ (API 28), iOS 12+
+- Dark background #09090b as default, primary accent indigo #6366f1
+- No shadcn/ui, no Tailwind — React Native StyleSheet throughout
 
 ## Gotchas
 
-_Populate as you build — sharp edges, "always run X before Y" rules._
+- react-native-calendars and react-native-chart-kit are installed in the mobile package
+- expo-image-picker stores photos as base64 data URIs
+- ThemeContext must wrap app before AuthContext reads AsyncStorage
+- Do NOT restart the mobile workflow for code changes — Expo HMR handles those
 
 ## Pointers
 
-- See the `pnpm-workspace` skill for workspace structure, TypeScript setup, and package details
+- See the `pnpm-workspace` skill for workspace structure
+- See the `expo` skill for Expo conventions
