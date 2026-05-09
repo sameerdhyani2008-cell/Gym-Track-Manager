@@ -7,7 +7,7 @@ export default function MembersLayout() {
   const colors = useColors();
   const { customColors } = useTheme();
   const hasGradient = !!(customColors.gradientFrom && customColors.gradientTo);
-  const headerBg = hasGradient ? (customColors.gradientFrom! + 'ee') : colors.background;
+  const headerBg = hasGradient ? (customColors.gradientFrom! + '55') : colors.background;
 
   return (
     <Stack

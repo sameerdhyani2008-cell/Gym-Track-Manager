@@ -10,8 +10,8 @@ export default function OwnerLayout() {
   const { customColors } = useTheme();
 
   const hasGradient = !!(customColors.gradientFrom && customColors.gradientTo);
-  const headerBg = hasGradient ? (customColors.gradientFrom! + 'ee') : colors.background;
-  const tabBg = hasGradient ? (customColors.gradientFrom! + 'dd') : colors.background;
+  const headerBg = hasGradient ? (customColors.gradientFrom! + '55') : colors.background;
+  const tabBg = hasGradient ? (customColors.gradientTo! + '55') : colors.background;
 
   return (
     <Tabs
@@ -22,7 +22,7 @@ export default function OwnerLayout() {
         headerShadowVisible: hasGradient ? false : true,
         tabBarStyle: {
           backgroundColor: tabBg,
-          borderTopColor: hasGradient ? (customColors.gradientFrom! + '44') : colors.border,
+          borderTopColor: hasGradient ? (customColors.gradientTo! + '44') : colors.border,
           borderTopWidth: 1,
           height: Platform.OS === 'web' ? 84 : 60,
           paddingBottom: Platform.OS === 'web' ? 34 : 6,
