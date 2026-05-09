@@ -2,21 +2,27 @@ import { Ionicons } from '@expo/vector-icons';
 import { Tabs } from 'expo-router';
 import React from 'react';
 import { Platform, StyleSheet, View } from 'react-native';
+import { useTheme } from '@/context/ThemeContext';
 import { useColors } from '@/hooks/useColors';
 
 export default function OwnerLayout() {
   const colors = useColors();
+  const { customColors } = useTheme();
+
+  const hasGradient = !!(customColors.gradientFrom && customColors.gradientTo);
+  const headerBg = hasGradient ? (customColors.gradientFrom! + 'ee') : colors.background;
+  const tabBg = hasGradient ? (customColors.gradientFrom! + 'dd') : colors.background;
 
   return (
     <Tabs
       screenOptions={{
-        headerStyle: { backgroundColor: colors.background, elevation: 4, shadowOpacity: 0.12, shadowRadius: 4, shadowOffset: { width: 0, height: 2 } },
+        headerStyle: { backgroundColor: headerBg, elevation: 0, shadowOpacity: 0 },
         headerTintColor: colors.foreground,
         headerTitleStyle: { fontFamily: 'Inter_600SemiBold', fontSize: 17 },
-        headerShadowVisible: true,
+        headerShadowVisible: hasGradient ? false : true,
         tabBarStyle: {
-          backgroundColor: colors.background,
-          borderTopColor: colors.border,
+          backgroundColor: tabBg,
+          borderTopColor: hasGradient ? (customColors.gradientFrom! + '44') : colors.border,
           borderTopWidth: 1,
           height: Platform.OS === 'web' ? 84 : 60,
           paddingBottom: Platform.OS === 'web' ? 34 : 6,

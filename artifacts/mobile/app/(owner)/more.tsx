@@ -53,7 +53,6 @@ export default function MoreScreen() {
   return (
     <GradientBackground>
     <ScrollView style={{ flex: 1, backgroundColor: 'transparent' }} contentContainerStyle={styles.container}>
-      <Text style={[styles.heading, { color: colors.foreground }]}>More</Text>
       {items.map(item => (
         <TouchableOpacity
           key={item.route}

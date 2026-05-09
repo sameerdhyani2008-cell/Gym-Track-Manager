@@ -7,11 +7,12 @@ export default function MembersLayout() {
   const colors = useColors();
   const { customColors } = useTheme();
   const hasGradient = !!(customColors.gradientFrom && customColors.gradientTo);
+  const headerBg = hasGradient ? (customColors.gradientFrom! + 'ee') : colors.background;
+
   return (
     <Stack
       screenOptions={{
-        headerStyle: { backgroundColor: hasGradient ? 'transparent' : colors.background },
-        headerTransparent: hasGradient,
+        headerStyle: { backgroundColor: headerBg },
         headerTintColor: colors.foreground,
         headerTitleStyle: { fontFamily: 'Inter_600SemiBold', fontSize: 17 },
         headerShadowVisible: false,
