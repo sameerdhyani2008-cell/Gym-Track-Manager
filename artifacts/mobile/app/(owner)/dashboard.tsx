@@ -13,6 +13,7 @@ import {
   View,
 } from 'react-native';
 import { LineChart } from 'react-native-chart-kit';
+import { GradientBackground } from '@/components/GradientBackground';
 import { StatCard } from '@/components/StatCard';
 import { useAuth } from '@/context/AuthContext';
 import { useColors } from '@/hooks/useColors';
@@ -47,8 +48,9 @@ export default function DashboardScreen() {
   };
 
   return (
+    <GradientBackground>
     <ScrollView
-      style={{ flex: 1, backgroundColor: colors.background }}
+      style={{ flex: 1, backgroundColor: 'transparent' }}
       contentContainerStyle={styles.container}
       refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.primary} />}
     >
@@ -136,6 +138,7 @@ export default function DashboardScreen() {
         </View>
       )}
     </ScrollView>
+    </GradientBackground>
   );
 }
 

@@ -8,6 +8,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import { GradientBackground } from '@/components/GradientBackground';
 import { StyledButton } from '@/components/StyledButton';
 import { StyledInput } from '@/components/StyledInput';
 import { useAuth } from '@/context/AuthContext';
@@ -76,7 +77,8 @@ export default function RevenueScreen() {
   );
 
   return (
-    <View style={{ flex: 1, backgroundColor: colors.background }}>
+    <GradientBackground>
+    <View style={{ flex: 1, backgroundColor: 'transparent' }}>
       <FlatList
         data={revenues}
         keyExtractor={r => r.id}
@@ -173,6 +175,7 @@ export default function RevenueScreen() {
         </View>
       </Modal>
     </View>
+    </GradientBackground>
   );
 }
 

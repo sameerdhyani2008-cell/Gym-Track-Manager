@@ -2,6 +2,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import React from 'react';
 import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { GradientBackground } from '@/components/GradientBackground';
 import { useAuth } from '@/context/AuthContext';
 import { useColors } from '@/hooks/useColors';
 
@@ -50,7 +51,8 @@ export default function MoreScreen() {
   ];
 
   return (
-    <ScrollView style={{ flex: 1, backgroundColor: colors.background }} contentContainerStyle={styles.container}>
+    <GradientBackground>
+    <ScrollView style={{ flex: 1, backgroundColor: 'transparent' }} contentContainerStyle={styles.container}>
       <Text style={[styles.heading, { color: colors.foreground }]}>More</Text>
       {items.map(item => (
         <TouchableOpacity
@@ -70,6 +72,7 @@ export default function MoreScreen() {
         </TouchableOpacity>
       ))}
     </ScrollView>
+    </GradientBackground>
   );
 }
 

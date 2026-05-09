@@ -15,6 +15,7 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { EmptyState } from '@/components/EmptyState';
+import { GradientBackground } from '@/components/GradientBackground';
 import { useAuth } from '@/context/AuthContext';
 import { useColors } from '@/hooks/useColors';
 import { getTodayDateStr, toggleAttendance } from '@/store';
@@ -157,7 +158,8 @@ export default function AttendanceScreen() {
   };
 
   return (
-    <View style={{ flex: 1, backgroundColor: colors.background }}>
+    <GradientBackground>
+    <View style={{ flex: 1, backgroundColor: 'transparent' }}>
       <View style={[styles.banner, { backgroundColor: colors.card, borderBottomColor: colors.border }]}>
         <View style={styles.bannerRow}>
           <TouchableOpacity onPress={() => setSelectedDate(shiftDate(selectedDate, -1))} style={styles.arrowBtn}>
@@ -288,6 +290,7 @@ export default function AttendanceScreen() {
         </View>
       </Modal>
     </View>
+    </GradientBackground>
   );
 }
 

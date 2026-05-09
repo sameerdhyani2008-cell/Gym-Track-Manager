@@ -4,10 +4,15 @@ import React, { createContext, useContext, useEffect, useState } from 'react';
 const DARK_MODE_KEY = 'gym_app_dark_mode';
 const CUSTOM_COLORS_KEY = 'gym_app_custom_colors';
 
+export type GradientDirection = 'vertical' | 'horizontal' | 'diagonal';
+
 export interface CustomColors {
   primary?: string;
   background?: string;
   foreground?: string;
+  gradientFrom?: string;
+  gradientTo?: string;
+  gradientDirection?: GradientDirection;
 }
 
 interface ThemeContextType {
@@ -52,7 +57,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     if (value === null) {
       delete next[key];
     } else {
-      next[key] = value;
+      (next as any)[key] = value;
     }
     setCustomColors(next);
     await AsyncStorage.setItem(CUSTOM_COLORS_KEY, JSON.stringify(next));

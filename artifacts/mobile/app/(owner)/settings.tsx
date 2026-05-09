@@ -1,4 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import {
@@ -9,10 +10,11 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import { GradientBackground } from '@/components/GradientBackground';
 import { StyledButton } from '@/components/StyledButton';
 import { StyledInput } from '@/components/StyledInput';
 import { useAuth } from '@/context/AuthContext';
-import { useTheme } from '@/context/ThemeContext';
+import { type GradientDirection, useTheme } from '@/context/ThemeContext';
 import { useColors } from '@/hooks/useColors';
 import { updateGymSettings } from '@/store';
 
@@ -77,6 +79,35 @@ const TEXT_COLORS_DARK = [
   { label: 'Lavender', value: '#ddd6fe' },
 ];
 
+const GRADIENT_COLORS = [
+  { label: 'Black', value: '#000000' },
+  { label: 'Zinc', value: '#18181b' },
+  { label: 'Navy', value: '#0f172a' },
+  { label: 'Indigo', value: '#312e81' },
+  { label: 'Violet', value: '#4c1d95' },
+  { label: 'Purple', value: '#581c87' },
+  { label: 'Fuchsia', value: '#701a75' },
+  { label: 'Rose', value: '#881337' },
+  { label: 'Wine', value: '#7f1d1d' },
+  { label: 'Blue', value: '#1e3a8a' },
+  { label: 'Teal', value: '#134e4a' },
+  { label: 'Forest', value: '#14532d' },
+  { label: 'Gold', value: '#78350f' },
+  { label: 'Slate', value: '#1e293b' },
+  { label: 'White', value: '#ffffff' },
+  { label: 'Cream', value: '#fef9f0' },
+  { label: 'Sky', value: '#e0f2fe' },
+  { label: 'Lavender', value: '#ede9fe' },
+  { label: 'Blush', value: '#fce7f3' },
+  { label: 'Mint', value: '#d1fae5' },
+];
+
+const GRADIENT_DIRECTIONS: { label: string; value: GradientDirection; icon: string }[] = [
+  { label: 'Top → Bottom', value: 'vertical', icon: '↓' },
+  { label: 'Left → Right', value: 'horizontal', icon: '→' },
+  { label: 'Diagonal', value: 'diagonal', icon: '↘' },
+];
+
 function ColorSwatch({
   color,
   label,
@@ -97,7 +128,7 @@ function ColorSwatch({
           selected ? swatchStyles.swatchSelected : swatchStyles.swatchBorder,
         ]}
       >
-        {selected && <Ionicons name="checkmark" size={14} color="#fff" />}
+        {selected && <Ionicons name="checkmark" size={14} color={color === '#ffffff' || color === '#fafafa' || color === '#e0f2fe' || color === '#ede9fe' || color === '#fce7f3' || color === '#d1fae5' || color === '#fef9f0' || color === '#fef3c7' ? '#000' : '#fff'} />}
       </View>
       <Text style={[swatchStyles.swatchLabel, selected && swatchStyles.swatchLabelActive]}>{label}</Text>
     </TouchableOpacity>
@@ -157,6 +188,7 @@ export default function OwnerSettingsScreen() {
   const [loading, setLoading] = useState(false);
   const [saveMsg, setSaveMsg] = useState('');
   const [saveErr, setSaveErr] = useState('');
+  const [gradientPicking, setGradientPicking] = useState<'from' | 'to' | null>(null);
   const [form, setForm] = useState({
     name: gym?.name ?? '',
     ownerName: gym?.ownerName ?? '',
@@ -206,8 +238,24 @@ export default function OwnerSettingsScreen() {
   const bgSwatches = isDark ? BACKGROUND_COLORS_DARK : BACKGROUND_COLORS_LIGHT;
   const textSwatches = isDark ? TEXT_COLORS_DARK : TEXT_COLORS_LIGHT;
 
+  const gradientFrom = customColors.gradientFrom;
+  const gradientTo = customColors.gradientTo;
+  const gradientDir = customColors.gradientDirection ?? 'vertical';
+  const hasGradient = !!(gradientFrom && gradientTo);
+
+  const clearGradient = () => {
+    setCustomColor('gradientFrom', null);
+    setCustomColor('gradientTo', null);
+  };
+
+  const gradientStart = gradientDir === 'horizontal' ? { x: 0, y: 0.5 } : gradientDir === 'diagonal' ? { x: 0, y: 0 } : { x: 0.5, y: 0 };
+  const gradientEnd   = gradientDir === 'horizontal' ? { x: 1, y: 0.5 } : gradientDir === 'diagonal' ? { x: 1, y: 1 } : { x: 0.5, y: 1 };
+
+  const hasAnyCustom = !!(customColors.primary || customColors.background || customColors.foreground || hasGradient);
+
   return (
-    <ScrollView style={{ flex: 1, backgroundColor: colors.background }} contentContainerStyle={styles.container}>
+    <GradientBackground>
+    <ScrollView style={{ flex: 1, backgroundColor: 'transparent' }} contentContainerStyle={styles.container}>
       <View style={[styles.infoBox, { backgroundColor: colors.card, borderColor: colors.border, borderRadius: colors.radius }]}>
         <Text style={[styles.label, { color: colors.mutedForeground }]}>Gym ID</Text>
         <Text style={[styles.gymId, { color: colors.primary }]}>{gym?.id}</Text>
@@ -240,11 +288,12 @@ export default function OwnerSettingsScreen() {
 
       <StyledButton title="Save Changes" onPress={handleSave} loading={loading} />
 
+      {/* Appearance Card */}
       <View style={[styles.appearanceCard, { backgroundColor: colors.card, borderColor: colors.border, borderRadius: colors.radius }]}>
         <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
           <Text style={[styles.sectionTitle, { color: colors.foreground }]}>Appearance</Text>
-          {(customColors.primary || customColors.background || customColors.foreground) && (
-            <TouchableOpacity onPress={resetCustomColors}>
+          {hasAnyCustom && (
+            <TouchableOpacity onPress={() => { resetCustomColors(); setGradientPicking(null); }}>
               <Text style={[swatchStyles.resetBtn, { color: colors.destructive }]}>Reset All</Text>
             </TouchableOpacity>
           )}
@@ -256,6 +305,7 @@ export default function OwnerSettingsScreen() {
         </View>
 
         <View style={{ gap: 20 }}>
+          {/* Accent color */}
           <ColorSection
             title="Accent Color"
             subtitle="Buttons, tabs & highlights"
@@ -268,18 +318,152 @@ export default function OwnerSettingsScreen() {
 
           <View style={[styles.divider, { backgroundColor: colors.border }]} />
 
+          {/* Solid background */}
           <ColorSection
             title="Background"
-            subtitle="App background color"
+            subtitle="App solid background color"
             swatches={bgSwatches}
-            activeValue={customColors.background}
-            onSelect={v => setCustomColor('background', v)}
+            activeValue={hasGradient ? undefined : customColors.background}
+            onSelect={v => { clearGradient(); setCustomColor('background', v); }}
             onReset={() => setCustomColor('background', null)}
             colors={colors}
           />
 
           <View style={[styles.divider, { backgroundColor: colors.border }]} />
 
+          {/* Gradient section */}
+          <View style={{ gap: 12 }}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+              <View style={{ gap: 2 }}>
+                <Text style={[swatchStyles.sectionLabel, { color: colors.foreground }]}>Gradient Background</Text>
+                <Text style={[swatchStyles.sectionSub, { color: colors.mutedForeground }]}>Blend two colours like Canva</Text>
+              </View>
+              {hasGradient && (
+                <TouchableOpacity onPress={clearGradient}>
+                  <Text style={[swatchStyles.resetBtn, { color: colors.primary }]}>Reset</Text>
+                </TouchableOpacity>
+              )}
+            </View>
+
+            {/* Live gradient preview */}
+            {hasGradient ? (
+              <LinearGradient
+                colors={[gradientFrom!, gradientTo!]}
+                start={gradientStart}
+                end={gradientEnd}
+                style={[styles.gradientPreview, { borderRadius: colors.radius }]}
+              >
+                <Text style={styles.gradientPreviewText}>Preview</Text>
+              </LinearGradient>
+            ) : (
+              <View style={[styles.gradientPreviewEmpty, { borderColor: colors.border, borderRadius: colors.radius }]}>
+                <Text style={[styles.gradientPreviewHint, { color: colors.mutedForeground }]}>Pick two colours below to create a gradient</Text>
+              </View>
+            )}
+
+            {/* From / To selector buttons */}
+            <View style={{ flexDirection: 'row', gap: 10 }}>
+              <TouchableOpacity
+                onPress={() => setGradientPicking(gradientPicking === 'from' ? null : 'from')}
+                style={[
+                  styles.gradientSlotBtn,
+                  { borderColor: gradientPicking === 'from' ? colors.primary : colors.border, borderRadius: colors.radius },
+                  gradientFrom ? { backgroundColor: gradientFrom } : { backgroundColor: colors.secondary },
+                ]}
+              >
+                {gradientFrom ? (
+                  <View style={{ alignItems: 'center', gap: 2 }}>
+                    <Ionicons name="ellipse" size={18} color={gradientFrom} style={{ opacity: 0 }} />
+                    <Text style={{ color: '#fff', fontFamily: 'Inter_600SemiBold', fontSize: 11, textShadowColor: '#0008', textShadowRadius: 4, textShadowOffset: { width: 0, height: 1 } }}>From</Text>
+                  </View>
+                ) : (
+                  <View style={{ alignItems: 'center', gap: 4 }}>
+                    <Ionicons name="add-circle-outline" size={20} color={colors.mutedForeground} />
+                    <Text style={{ color: colors.mutedForeground, fontFamily: 'Inter_500Medium', fontSize: 11 }}>From</Text>
+                  </View>
+                )}
+              </TouchableOpacity>
+
+              <View style={{ alignItems: 'center', justifyContent: 'center', paddingHorizontal: 4 }}>
+                <Text style={{ color: colors.mutedForeground, fontSize: 18 }}>→</Text>
+              </View>
+
+              <TouchableOpacity
+                onPress={() => setGradientPicking(gradientPicking === 'to' ? null : 'to')}
+                style={[
+                  styles.gradientSlotBtn,
+                  { borderColor: gradientPicking === 'to' ? colors.primary : colors.border, borderRadius: colors.radius },
+                  gradientTo ? { backgroundColor: gradientTo } : { backgroundColor: colors.secondary },
+                ]}
+              >
+                {gradientTo ? (
+                  <View style={{ alignItems: 'center', gap: 2 }}>
+                    <Ionicons name="ellipse" size={18} color={gradientTo} style={{ opacity: 0 }} />
+                    <Text style={{ color: '#fff', fontFamily: 'Inter_600SemiBold', fontSize: 11, textShadowColor: '#0008', textShadowRadius: 4, textShadowOffset: { width: 0, height: 1 } }}>To</Text>
+                  </View>
+                ) : (
+                  <View style={{ alignItems: 'center', gap: 4 }}>
+                    <Ionicons name="add-circle-outline" size={20} color={colors.mutedForeground} />
+                    <Text style={{ color: colors.mutedForeground, fontFamily: 'Inter_500Medium', fontSize: 11 }}>To</Text>
+                  </View>
+                )}
+              </TouchableOpacity>
+            </View>
+
+            {/* Color picker for selected slot */}
+            {gradientPicking && (
+              <View style={{ gap: 8 }}>
+                <Text style={[swatchStyles.sectionSub, { color: colors.mutedForeground }]}>
+                  Pick {gradientPicking === 'from' ? '"From"' : '"To"'} colour:
+                </Text>
+                <View style={swatchStyles.swatchRow}>
+                  {GRADIENT_COLORS.map(s => (
+                    <ColorSwatch
+                      key={s.value}
+                      color={s.value}
+                      label={s.label}
+                      selected={(gradientPicking === 'from' ? gradientFrom : gradientTo) === s.value}
+                      onPress={() => {
+                        setCustomColor(gradientPicking === 'from' ? 'gradientFrom' : 'gradientTo', s.value);
+                        if (gradientPicking === 'from' && !gradientTo) setGradientPicking('to');
+                        else setGradientPicking(null);
+                      }}
+                    />
+                  ))}
+                </View>
+              </View>
+            )}
+
+            {/* Direction toggle */}
+            {hasGradient && (
+              <View style={{ gap: 8 }}>
+                <Text style={[swatchStyles.sectionSub, { color: colors.mutedForeground }]}>Direction</Text>
+                <View style={{ flexDirection: 'row', gap: 8 }}>
+                  {GRADIENT_DIRECTIONS.map(d => (
+                    <TouchableOpacity
+                      key={d.value}
+                      onPress={() => setCustomColor('gradientDirection', d.value)}
+                      style={[
+                        styles.dirBtn,
+                        {
+                          borderRadius: colors.radius,
+                          borderColor: gradientDir === d.value ? colors.primary : colors.border,
+                          backgroundColor: gradientDir === d.value ? colors.primary + '22' : colors.secondary,
+                        },
+                      ]}
+                    >
+                      <Text style={{ fontSize: 16 }}>{d.icon}</Text>
+                      <Text style={[styles.dirLabel, { color: gradientDir === d.value ? colors.primary : colors.mutedForeground }]}>{d.label}</Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              </View>
+            )}
+          </View>
+
+          <View style={[styles.divider, { backgroundColor: colors.border }]} />
+
+          {/* Text color */}
           <ColorSection
             title="Text Color"
             subtitle="Main text across the app"
@@ -291,6 +475,7 @@ export default function OwnerSettingsScreen() {
           />
         </View>
 
+        {/* Preview strip */}
         <View style={[styles.previewRow, { backgroundColor: colors.background, borderColor: colors.border, borderRadius: colors.radius, marginTop: 20 }]}>
           <Text style={[styles.previewLabel, { color: colors.mutedForeground }]}>Preview</Text>
           <View style={[styles.previewChip, { backgroundColor: colors.primary, borderRadius: 8 }]}>
@@ -302,6 +487,7 @@ export default function OwnerSettingsScreen() {
 
       <StyledButton title="Logout" onPress={handleLogout} variant="destructive" />
     </ScrollView>
+    </GradientBackground>
   );
 }
 
@@ -322,6 +508,13 @@ const styles = StyleSheet.create({
   previewLabel: { fontSize: 12, fontFamily: 'Inter_500Medium', flex: 1 },
   previewChip: { paddingHorizontal: 14, paddingVertical: 7 },
   previewText: { fontSize: 14, fontFamily: 'Inter_500Medium' },
+  gradientPreview: { height: 80, alignItems: 'center', justifyContent: 'center' },
+  gradientPreviewText: { color: '#fff', fontFamily: 'Inter_600SemiBold', fontSize: 14, textShadowColor: '#0006', textShadowRadius: 6, textShadowOffset: { width: 0, height: 1 } },
+  gradientPreviewEmpty: { height: 80, borderWidth: 1, borderStyle: 'dashed', alignItems: 'center', justifyContent: 'center', paddingHorizontal: 20 },
+  gradientPreviewHint: { fontSize: 12, fontFamily: 'Inter_400Regular', textAlign: 'center' },
+  gradientSlotBtn: { flex: 1, height: 64, borderWidth: 1.5, alignItems: 'center', justifyContent: 'center' },
+  dirBtn: { flex: 1, paddingVertical: 10, alignItems: 'center', borderWidth: 1, gap: 2 },
+  dirLabel: { fontSize: 10, fontFamily: 'Inter_500Medium', textAlign: 'center' },
 });
 
 const swatchStyles = StyleSheet.create({
