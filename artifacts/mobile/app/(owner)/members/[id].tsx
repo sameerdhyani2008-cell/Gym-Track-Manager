@@ -44,7 +44,11 @@ export default function MemberDetailScreen() {
     member.attendanceDates.map(d => [d, { marked: true, dotColor: colors.navAttendance }])
   );
 
-  const daysLeft = Math.ceil((new Date(member.endDate).getTime() - Date.now()) / 86400000);
+  const today = new Date();
+  const todayLocal = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+  const [ey, em, ed] = member.endDate.split('-').map(Number);
+  const endLocal = new Date(ey, em - 1, ed);
+  const daysLeft = Math.round((endLocal.getTime() - todayLocal.getTime()) / 86400000);
   const statusColor = member.status === 'active' ? '#22c55e' : member.status === 'expired' ? '#f59e0b' : '#ef4444';
 
   const handleConfirm = async () => {

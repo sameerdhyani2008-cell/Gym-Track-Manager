@@ -31,24 +31,32 @@ const ACCENT_COLORS = [
 
 const BACKGROUND_COLORS_LIGHT = [
   { label: 'White', value: '#fafafa' },
+  { label: 'Warm', value: '#fdf8f0' },
   { label: 'Cream', value: '#fffbeb' },
+  { label: 'Sand', value: '#fef3c7' },
   { label: 'Sky', value: '#f0f9ff' },
   { label: 'Lavender', value: '#f5f3ff' },
+  { label: 'Blush', value: '#fff1f2' },
   { label: 'Mint', value: '#f0fdf4' },
-  { label: 'Rose', value: '#fff1f2' },
-  { label: 'Slate', value: '#f8fafc' },
-  { label: 'Sand', value: '#fef3c7' },
+  { label: 'Slate', value: '#f1f5f9' },
+  { label: 'Peach', value: '#fff7ed' },
+  { label: 'Lilac', value: '#faf5ff' },
+  { label: 'Cloud', value: '#f8fafc' },
 ];
 
 const BACKGROUND_COLORS_DARK = [
   { label: 'Zinc', value: '#09090b' },
+  { label: 'Charcoal', value: '#1a1a1a' },
   { label: 'Slate', value: '#0f172a' },
-  { label: 'Navy', value: '#0a0f1e' },
-  { label: 'Stone', value: '#0c0a09' },
-  { label: 'Neutral', value: '#0a0a0a' },
-  { label: 'Indigo', value: '#0e0f1f' },
-  { label: 'Forest', value: '#071a0f' },
-  { label: 'Wine', value: '#150a0a' },
+  { label: 'Navy', value: '#0c1425' },
+  { label: 'Midnight', value: '#121212' },
+  { label: 'Indigo', value: '#12101f' },
+  { label: 'Forest', value: '#0a1a0f' },
+  { label: 'Wine', value: '#1a0808' },
+  { label: 'Coffee', value: '#1c1208' },
+  { label: 'Teal', value: '#071a18' },
+  { label: 'Plum', value: '#160d1f' },
+  { label: 'Ash', value: '#111118' },
 ];
 
 const TEXT_COLORS_LIGHT = [
@@ -71,24 +79,27 @@ const TEXT_COLORS_DARK = [
 
 function ColorSwatch({
   color,
+  label,
   selected,
   onPress,
 }: {
   color: string;
+  label: string;
   selected: boolean;
   onPress: () => void;
 }) {
   return (
-    <TouchableOpacity
-      onPress={onPress}
-      activeOpacity={0.8}
-      style={[
-        swatchStyles.swatch,
-        { backgroundColor: color },
-        selected && swatchStyles.swatchSelected,
-      ]}
-    >
-      {selected && <Ionicons name="checkmark" size={14} color="#fff" />}
+    <TouchableOpacity onPress={onPress} activeOpacity={0.8} style={swatchStyles.swatchWrap}>
+      <View
+        style={[
+          swatchStyles.swatch,
+          { backgroundColor: color },
+          selected ? swatchStyles.swatchSelected : swatchStyles.swatchBorder,
+        ]}
+      >
+        {selected && <Ionicons name="checkmark" size={14} color="#fff" />}
+      </View>
+      <Text style={[swatchStyles.swatchLabel, selected && swatchStyles.swatchLabelActive]}>{label}</Text>
     </TouchableOpacity>
   );
 }
@@ -128,6 +139,7 @@ function ColorSection({
           <ColorSwatch
             key={s.value}
             color={s.value}
+            label={s.label}
             selected={activeValue === s.value}
             onPress={() => onSelect(s.value)}
           />
@@ -313,9 +325,13 @@ const styles = StyleSheet.create({
 });
 
 const swatchStyles = StyleSheet.create({
-  swatchRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
-  swatch: { width: 36, height: 36, borderRadius: 18, alignItems: 'center', justifyContent: 'center', borderWidth: 2, borderColor: 'transparent' },
-  swatchSelected: { borderColor: '#fff', shadowColor: '#000', shadowOpacity: 0.3, shadowRadius: 4, shadowOffset: { width: 0, height: 2 }, elevation: 4 },
+  swatchRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
+  swatchWrap: { alignItems: 'center', gap: 4, width: 48 },
+  swatch: { width: 38, height: 38, borderRadius: 19, alignItems: 'center', justifyContent: 'center', borderWidth: 2 },
+  swatchBorder: { borderColor: '#44444466' },
+  swatchSelected: { borderColor: '#fff', shadowColor: '#000', shadowOpacity: 0.4, shadowRadius: 5, shadowOffset: { width: 0, height: 2 }, elevation: 5 },
+  swatchLabel: { fontSize: 9, fontFamily: 'Inter_400Regular', color: '#71717a', textAlign: 'center' },
+  swatchLabelActive: { fontFamily: 'Inter_600SemiBold', color: '#6366f1' },
   sectionLabel: { fontSize: 14, fontFamily: 'Inter_600SemiBold', fontWeight: '600' as const },
   sectionSub: { fontSize: 12, fontFamily: 'Inter_400Regular' },
   resetBtn: { fontSize: 13, fontFamily: 'Inter_600SemiBold', fontWeight: '600' as const },
