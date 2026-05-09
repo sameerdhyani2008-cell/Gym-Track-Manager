@@ -2,7 +2,7 @@ import colors from '@/constants/colors';
 import { useTheme } from '@/context/ThemeContext';
 
 export function useColors() {
-  const { isDark } = useTheme();
+  const { isDark, customColors } = useTheme();
   const palette = isDark ? colors.dark : colors.light;
-  return { ...palette, radius: colors.radius };
+  return { ...palette, ...customColors, radius: colors.radius };
 }
