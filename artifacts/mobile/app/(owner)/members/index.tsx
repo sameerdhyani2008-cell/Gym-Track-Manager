@@ -11,6 +11,7 @@ import {
   View,
 } from 'react-native';
 import { EmptyState } from '@/components/EmptyState';
+import { GradientBackground } from '@/components/GradientBackground';
 import { MemberCard } from '@/components/MemberCard';
 import { useAuth } from '@/context/AuthContext';
 import { useColors } from '@/hooks/useColors';
@@ -40,7 +41,8 @@ export default function MembersScreen() {
     .map(m => ({ ...m, planName: planMap[m.planId] ?? 'Unknown Plan' }));
 
   return (
-    <View style={{ flex: 1, backgroundColor: colors.background }}>
+    <GradientBackground>
+    <View style={{ flex: 1, backgroundColor: 'transparent' }}>
       <View style={styles.topBar}>
         <View style={[styles.searchBox, { backgroundColor: colors.card, borderColor: colors.border, borderRadius: colors.radius }]}>
           <Ionicons name="search-outline" size={16} color={colors.mutedForeground} />
@@ -95,6 +97,7 @@ export default function MembersScreen() {
         scrollEnabled={!!filtered.length}
       />
     </View>
+    </GradientBackground>
   );
 }
 

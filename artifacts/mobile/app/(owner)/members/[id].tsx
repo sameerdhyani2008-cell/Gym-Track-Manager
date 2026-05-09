@@ -11,6 +11,7 @@ import {
   View,
 } from 'react-native';
 import { Calendar } from 'react-native-calendars';
+import { GradientBackground } from '@/components/GradientBackground';
 import { StyledButton } from '@/components/StyledButton';
 import { useAuth } from '@/context/AuthContext';
 import { useColors } from '@/hooks/useColors';
@@ -77,8 +78,9 @@ export default function MemberDetailScreen() {
   const hasMedical = member.medicalConditions || member.previousInjuries || member.bloodType || member.allergies || member.medicalInfo;
 
   return (
+    <GradientBackground>
     <ScrollView
-      style={{ flex: 1, backgroundColor: colors.background }}
+      style={{ flex: 1, backgroundColor: 'transparent' }}
       contentContainerStyle={styles.container}
       refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.primary} />}
     >
@@ -202,6 +204,7 @@ export default function MemberDetailScreen() {
         </View>
       )}
     </ScrollView>
+    </GradientBackground>
   );
 }
 
