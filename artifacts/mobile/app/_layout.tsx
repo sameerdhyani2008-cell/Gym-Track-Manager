@@ -28,7 +28,6 @@ function RootLayoutNav() {
       <Stack.Screen name="forgot-password" />
       <Stack.Screen name="(owner)" />
       <Stack.Screen name="(trainer)" />
-      <Stack.Screen name="(tabs)" />
     </Stack>
   );
 }
