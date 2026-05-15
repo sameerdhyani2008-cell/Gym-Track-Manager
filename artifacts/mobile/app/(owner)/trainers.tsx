@@ -8,6 +8,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import { GradientBackground } from '@/components/GradientBackground';
 import { StyledButton } from '@/components/StyledButton';
 import { StyledInput } from '@/components/StyledInput';
 import { EmptyState } from '@/components/EmptyState';
@@ -65,7 +66,8 @@ export default function TrainersScreen() {
   };
 
   return (
-    <View style={{ flex: 1, backgroundColor: colors.background }}>
+    <GradientBackground>
+    <View style={{ flex: 1, backgroundColor: 'transparent' }}>
       <FlatList
         data={trainers}
         keyExtractor={t => t.id}
@@ -102,7 +104,6 @@ export default function TrainersScreen() {
         <Ionicons name="add" size={28} color="#fff" />
       </TouchableOpacity>
 
-      {/* Remove confirmation inline overlay */}
       {confirmRemove && (
         <View style={[styles.overlay, { backgroundColor: colors.background + 'ee' }]}>
           <View style={[styles.confirmCard, { backgroundColor: colors.card, borderColor: '#ef444444', borderRadius: colors.radius }]}>
@@ -146,6 +147,7 @@ export default function TrainersScreen() {
         </View>
       </Modal>
     </View>
+    </GradientBackground>
   );
 }
 

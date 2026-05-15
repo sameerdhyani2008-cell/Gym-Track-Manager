@@ -1,6 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import React from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import { GradientBackground } from '@/components/GradientBackground';
 import { useAuth } from '@/context/AuthContext';
 import { useColors } from '@/hooks/useColors';
 
@@ -26,17 +27,8 @@ export default function SubscriptionScreen() {
   const isPro = gym?.plan === 'pro';
 
   return (
-    <ScrollView style={{ flex: 1, backgroundColor: colors.background }} contentContainerStyle={styles.container}>
-      <Text style={[styles.title, { color: colors.foreground }]}>Your Plan</Text>
-      <Text style={[styles.sub, { color: colors.mutedForeground }]}>Manage your gym subscription</Text>
-
-      <View style={[styles.currentBadge, { backgroundColor: isPro ? '#f59e0b22' : colors.card, borderColor: isPro ? '#f59e0b44' : colors.border, borderRadius: colors.radius }]}>
-        <Text style={[styles.currentLabel, { color: colors.mutedForeground }]}>Current Plan</Text>
-        <Text style={[styles.currentPlan, { color: isPro ? '#f59e0b' : colors.foreground }]}>
-          {isPro ? 'Pro' : 'Free'}
-        </Text>
-      </View>
-
+    <GradientBackground>
+    <ScrollView style={{ flex: 1, backgroundColor: 'transparent' }} contentContainerStyle={styles.container}>
       <View style={styles.tiers}>
         <TierCard
           title="Free"
@@ -68,6 +60,7 @@ export default function SubscriptionScreen() {
         </View>
       )}
     </ScrollView>
+    </GradientBackground>
   );
 }
 
@@ -108,12 +101,7 @@ function TierCard({ title, price, period, features, active, colors, accentColor,
 }
 
 const styles = StyleSheet.create({
-  container: { padding: 20, gap: 20, paddingBottom: 40 },
-  title: { fontSize: 24, fontFamily: 'Inter_700Bold', fontWeight: '700' as const },
-  sub: { fontSize: 14, fontFamily: 'Inter_400Regular' },
-  currentBadge: { padding: 16, borderWidth: 1, gap: 4 },
-  currentLabel: { fontSize: 12, fontFamily: 'Inter_500Medium' },
-  currentPlan: { fontSize: 28, fontFamily: 'Inter_700Bold', fontWeight: '700' as const },
+  container: { padding: 20, gap: 16, paddingBottom: 40 },
   tiers: { gap: 16 },
   tier: { padding: 20, gap: 12 },
   activeBadge: { alignSelf: 'flex-start', paddingHorizontal: 10, paddingVertical: 4 },

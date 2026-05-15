@@ -8,6 +8,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import { GradientBackground } from '@/components/GradientBackground';
 import { StyledButton } from '@/components/StyledButton';
 import { StyledInput } from '@/components/StyledInput';
 import { EmptyState } from '@/components/EmptyState';
@@ -64,13 +65,18 @@ export default function PlansScreen() {
   };
 
   return (
-    <View style={{ flex: 1, backgroundColor: colors.background }}>
+    <GradientBackground>
+    <View style={{ flex: 1, backgroundColor: 'transparent' }}>
       <FlatList
         data={plans}
         keyExtractor={p => p.id}
-        contentContainerStyle={{ padding: 16, gap: 8, flexGrow: 1, paddingBottom: 100 }}
+        contentContainerStyle={{ padding: 16, gap: 10, flexGrow: 1, paddingBottom: 100 }}
         renderItem={({ item }) => (
           <View style={[styles.card, { backgroundColor: colors.card, borderColor: colors.border, borderRadius: colors.radius }]}>
+            <View style={[styles.durationBadge, { backgroundColor: colors.primary + '22', borderRadius: 8 }]}>
+              <Text style={[styles.durationNum, { color: colors.primary }]}>{item.duration}</Text>
+              <Text style={[styles.durationUnit, { color: colors.primary }]}>mo</Text>
+            </View>
             <View style={{ flex: 1 }}>
               <Text style={[styles.planName, { color: colors.foreground }]}>{item.name}</Text>
               <Text style={[styles.planSub, { color: colors.mutedForeground }]}>{item.duration} month{item.duration > 1 ? 's' : ''}</Text>
@@ -135,11 +141,15 @@ export default function PlansScreen() {
         </View>
       </Modal>
     </View>
+    </GradientBackground>
   );
 }
 
 const styles = StyleSheet.create({
   card: { flexDirection: 'row', alignItems: 'center', gap: 12, padding: 16, borderWidth: 1 },
+  durationBadge: { width: 48, height: 48, alignItems: 'center', justifyContent: 'center' },
+  durationNum: { fontSize: 18, fontFamily: 'Inter_700Bold', fontWeight: '700' as const, lineHeight: 20 },
+  durationUnit: { fontSize: 10, fontFamily: 'Inter_500Medium' },
   planName: { fontSize: 16, fontFamily: 'Inter_600SemiBold', fontWeight: '600' as const },
   planSub: { fontSize: 13, fontFamily: 'Inter_400Regular' },
   planPrice: { fontSize: 20, fontFamily: 'Inter_700Bold', fontWeight: '700' as const },
